@@ -299,7 +299,27 @@ def trendsee():
             E.fit_image(pdf, x, Image.open(A + 'beresnev.jpg'), r, c, mode='cover', focus=(0.5, 0.2))
 
 
-EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee]
+def neurocode_team():
+    from PIL import Image
+    from cat import image_placements
+    g = 62
+    pdf, pi = page(g)
+    col = E.color_in(pdf, pi, (750, 200, 900, 216))
+    sp = [x for f, n, x, r, c in image_placements(pdf, pi) if f == 'page' and abs(r[0] - 685) < 2 and abs(r[1] - 186) < 2]
+    assert len(sp) == 1
+    assert E.remove_do(pdf, pi, sp[0]) == 1
+    erase(pdf, pi, [(750, 198, 960, 236)])
+    team = [('Дмитрий Гайдук', 'сооснователь, CEO', 'gaiduk', 685, 182),
+            ('Владислав Бушуев', 'сооснователь, CTPO', 'bushuev', 820, 182),
+            ('Евгения Петина', 'COO', 'petina', 685, 232),
+            ('Иван Глытов', 'руководитель ML', 'glytov', 820, 232)]
+    for name, role, f, x, y in team:
+        E.add_image(pdf, pi, Image.open('assets/nc_%s.jpg' % f), (x, y, x + 40, y + 40), radius=7, cover=True)
+        E.put(pdf, pi, x + 46, y + 18, name, 'B', 10, col)
+        E.put(pdf, pi, x + 46, y + 30, role, 'R', 9, col)
+
+
+EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD

@@ -326,7 +326,7 @@ def fit_image(pdf, ximg, pil, r, clip=None, mode='cover', focus=(0.5, 0.5), bg=(
     replace_image(pdf, ximg, out, 'cover', quality=92)
 
 
-def add_image(pdf, pi, pil, rect, pad=0.06, bg=(255, 255, 255)):
+def add_image(pdf, pi, pil, rect, pad=0.06, bg=(255, 255, 255), radius=0.0, cover=False):
     """Place a new image (contain) into rect (fitz coords) on the page."""
     from PIL import Image
     import io as _io
@@ -335,9 +335,14 @@ def add_image(pdf, pi, pil, rect, pad=0.06, bg=(255, 255, 255)):
     CW, CH = round((x1 - x0) * k), round((y1 - y0) * k)
     src = pil.convert('RGBA')
     can = Image.new('RGBA', (CW, CH), bg + (255,))
-    s = min(CW * (1 - 2 * pad) / src.width, CH * (1 - 2 * pad) / src.height)
-    im = src.resize((max(1, round(src.width * s)), max(1, round(src.height * s))), Image.LANCZOS)
-    can.alpha_composite(im, ((CW - im.width) // 2, (CH - im.height) // 2))
+    if cover:
+        s = max(CW / src.width, CH / src.height)
+        im = src.resize((max(CW, round(src.width * s)), max(CH, round(src.height * s))), Image.LANCZOS)
+        can.alpha_composite(im.crop(((im.width - CW) // 2, (im.height - CH) // 2, (im.width - CW) // 2 + CW, (im.height - CH) // 2 + CH)))
+    else:
+        s = min(CW * (1 - 2 * pad) / src.width, CH * (1 - 2 * pad) / src.height)
+        im = src.resize((max(1, round(src.width * s)), max(1, round(src.height * s))), Image.LANCZOS)
+        can.alpha_composite(im, ((CW - im.width) // 2, (CH - im.height) // 2))
     b = _io.BytesIO()
     can.convert('RGB').save(b, 'JPEG', quality=93)
     xo = pikepdf.Stream(pdf, b.getvalue())
@@ -352,5 +357,25 @@ def add_image(pdf, pi, pil, rect, pad=0.06, bg=(255, 255, 255)):
         res.XObject = pikepdf.Dictionary()
     name = '/ImAdd%d' % len(res.XObject)
     res.XObject[name] = xo
-    s = 'q %.3f 0 0 %.3f %.3f %.3f cm %s Do Q\n' % (x1 - x0, y1 - y0, x0, H - y1, name)
+    clip = ''
+    if radius:
+        X0, Y0, X1, Y1 = x0, H - y1, x1, H - y0
+        r_, k_ = radius, radius * 0.5523
+        clip = ('%.3f %.3f m %.3f %.3f l %.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f l %.3f %.3f %.3f %.3f %.3f %.3f c '
+                '%.3f %.3f l %.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f l %.3f %.3f %.3f %.3f %.3f %.3f c h W n ') % (
+            X0 + r_, Y0, X1 - r_, Y0, X1 - r_ + k_, Y0, X1, Y0 + r_ - k_, X1, Y0 + r_,
+            X1, Y1 - r_, X1, Y1 - r_ + k_, X1 - r_ + k_, Y1, X1 - r_, Y1,
+            X0 + r_, Y1, X0 + r_ - k_, Y1, X0, Y1 - r_ + k_, X0, Y1 - r_,
+            X0, Y0 + r_, X0, Y0 + r_ - k_, X0 + r_ - k_, Y0, X0 + r_, Y0)
+    s = 'q %s%.3f 0 0 %.3f %.3f %.3f cm %s Do Q\n' % (clip, x1 - x0, y1 - y0, x0, H - y1, name)
     pdf.pages[pi].contents_add(pdf.make_stream(s.encode()), prepend=False)
+
+
+def remove_do(pdf, pi, xobj):
+    """Remove page-level Do operators that paint the given image XObject."""
+    pg = pdf.pages[pi]
+    ops = pikepdf.parse_content_stream(pg)
+    names = [k for k, v in pg.Resources.XObject.items() if v.objgen == xobj.objgen]
+    new = [o for o in ops if not (str(o.operator) == 'Do' and str(o.operands[0]) in names)]
+    pg.obj.Contents = pdf.make_stream(pikepdf.unparse_content_stream(new))
+    return len(ops) - len(new)
