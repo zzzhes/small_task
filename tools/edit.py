@@ -155,7 +155,8 @@ def rich_wrap(runs, size, maxw):
     for w in words:
         ww = _ww(w, size)
         sp = T.SPW[w[0][1]] * size
-        if cur and cw + sp + ww > maxw:
+        mw = maxw(len(lines_)) if callable(maxw) else maxw
+        if cur and cw + sp + ww > mw:
             lines_.append(cur)
             cur, cw = [w], ww
         else:
@@ -167,9 +168,11 @@ def rich_wrap(runs, size, maxw):
 
 
 def put_rich(pdf, pi, x, y, runs, size, color, maxw, lead, colors=None):
-    """Draw wrapped mixed-style paragraph; returns (n_lines, last_baseline)."""
+    """Draw wrapped mixed-style paragraph; returns (n_lines, last_baseline).
+    maxw may be a callable(baseline_y) -> width."""
     runs = [(typo(t), st) for t, st in runs]
-    ls = rich_wrap(runs, size, maxw)
+    mw = (lambda i: maxw(y + i * lead)) if callable(maxw) else maxw
+    ls = rich_wrap(runs, size, mw)
     for i, line in enumerate(ls):
         cx = x
         yy = y + i * lead
