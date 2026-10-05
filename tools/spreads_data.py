@@ -169,7 +169,7 @@ CROPGEN = dict(
     photo_label=PH, logo_text='CropGen',
     logo_box=(1096, 46, 1198, 80),
     photos=dict(speaker=(A + 'gote.jpg', 'cover', (0.5, 0.3)), logo=(A + 'cropgen_logo.png', 'logo'),
-                left=(A + 'cg_left.jpg', 'cover', (0.5, 0.5)), right=(A + 'cg_phone.png', 'contain')),
+                left=(A + 'cg_left.jpg', 'cover', (0.5, 0.5)), right=(A + 'cg_phone_n.png', 'contain')),
 )
 
 ELECTICA = dict(
@@ -197,5 +197,5 @@ ELECTICA = dict(
     ask_text='Инвестиции, продажи и партнёрства',
     photo_label=PH, logo_text='Electica', logo_box=(1096, 46, 1198, 80),
     photos=dict(logo=(A + 'electica_logo.png', 'logo'), speaker=(A + 'arpit.jpg', 'cover', (0.5, 0.35)),
-                left=(A + 'el_left.jpg', 'cover', (0.0, 0.0)), right=(A + 'el_right.jpg', 'cover', (0.0, 0.0))),
+                left=(A + 'el_left.jpg', 'cover', (0.0, 0.0)), right=(A + 'el_full.jpg', 'contain')),
 )
