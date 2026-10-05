@@ -302,7 +302,7 @@ def build_electica(pdf, pi, spdf, spi, D):
                     (75, 552, 222, 650), (250, 552, 398, 650), (398, 552, 600, 650),
                     (40, 675, 302, 815), (305, 675, 610, 815),
                     (683, 38, 1062, 125), (700, 148, 965, 168), (750, 198, 960, 236),
-                    (683, 295, 860, 430), (968, 128, 1215, 215), (683, 552, 860, 640)])
+                    (683, 295, 860, 430), (968, 128, 1215, 215), (683, 530, 860, 640)])
     nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
     assert nt <= 2, D['title']
     E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
@@ -338,9 +338,14 @@ def build_electica(pdf, pi, spdf, spi, D):
     E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
     E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
     E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
-    E.put(pdf, pi, 685.4, 308.0, 'ГОД', 'H', 14, hcol, tracking=0.28)
-    E.put(pdf, pi, 685.4, 325.0, 'ОСНОВАНИЯ', 'H', 14, hcol, tracking=0.28)
-    E.put(pdf, pi, 685.4, 351.0, D['year'], 'H', 16, hcol)
-    E.put_par(pdf, pi, 685.0, 566.0, D['ask_text'], 'R', 14, nav, 160, 17)
-    put_photos(pdf, pi, D)
+    # white panel layout: request + year on top, large full screenshot below
+    E.put(pdf, pi, 685.4, 322.0, 'ЗАПРОС', 'H', 14, nav, tracking=0.28)
+    E.put_par(pdf, pi, 685.4, 345.0, D['ask_text'], 'R', 14, nav, 230, 17)
+    E.put(pdf, pi, 940.0, 322.0, 'ГОД ОСНОВАНИЯ', 'H', 14, nav, tracking=0.28)
+    E.put(pdf, pi, 940.0, 348.0, D['year'], 'H', 16, nav)
+    D2 = dict(D)
+    D2['photos'] = dict(D['photos'])
+    D2['photos']['right'] = (D['blank'], 'cover')
+    put_photos(pdf, pi, D2)
+    E.add_image(pdf, pi, Image.open(D['shot']), (683.0, 395.0, 1197.0, 716.0), pad=0.0, bg=(255, 255, 255))
     E.add_image(pdf, pi, Image.open(D['flag']), (fx, 44.5, fx + 36, 65.5), pad=0.0, bg=(255, 153, 52))

@@ -195,6 +195,7 @@ ELECTICA = dict(
     city='Мадхья-Прадеш, Индия', year='2022',
     speaker='Arpit Kshirsagar', role='директор и CTO',
     ask_text='Инвестиции, продажи и партнёрства',
+    shot=A + 'el_full.jpg', blank=A + 'blank_white.png',
     photo_label=PH, logo_text='Electica', logo_box=(1096, 46, 1198, 80),
     photos=dict(logo=(A + 'electica_logo.png', 'logo'), speaker=(A + 'arpit.jpg', 'cover', (0.5, 0.35)),
                 left=(A + 'el_left.jpg', 'cover', (0.0, 0.0)), right=(A + 'el_full.jpg', 'contain')),
