@@ -243,3 +243,42 @@ def erase(pdf, pi, rects, **kw):
         keep.append(ent)
     LOG[:] = keep
     return _erase(pdf, pi, rects, **kw)
+
+
+def _letters(sps):
+    """Cluster subpaths into letters by x-overlap. Returns list of (x0,x1,y0,y1)."""
+    bs = sorted((s['bb'] for s in sps), key=lambda b: b[0])
+    out = []
+    for b in bs:
+        if out and b[0] < out[-1][1] - 0.2:
+            o = out[-1]
+            out[-1] = (o[0], max(o[1], b[2]), min(o[2], b[1]), max(o[3], b[3]))
+        else:
+            out.append((b[0], b[2], b[1], b[3]))
+    return out
+
+
+def add_suffix(pdf, pi, area, n=3):
+    """In a two-line label inside `area`, copy the last n letters of line 2 to the end of line 1."""
+    sps = []
+    for sp in visible_subpaths(pdf.pages[pi], H):
+        b = sp['bb']
+        cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+        if area[0] <= cx <= area[2] and area[1] <= cy <= area[3] and (b[2] - b[0]) > 0.3:
+            sps.append(sp)
+    ys = sorted((s['bb'][1] + s['bb'][3]) / 2 for s in sps)
+    gaps = [(ys[i + 1] - ys[i], i) for i in range(len(ys) - 1)]
+    g, i = max(gaps)
+    split = (ys[i] + ys[i + 1]) / 2
+    l1 = [s for s in sps if (s['bb'][1] + s['bb'][3]) / 2 < split]
+    l2 = [s for s in sps if (s['bb'][1] + s['bb'][3]) / 2 >= split]
+    L1, L2 = _letters(l1), _letters(l2)
+    src = L2[-n:]
+    gap = src[0][0] - L2[-n - 1][1]
+    base1 = max(s['bb'][3] for s in l1 if (s['bb'][3] - s['bb'][1]) > 2)
+    base2 = max(s['bb'][3] for s in l2 if (s['bb'][3] - s['bb'][1]) > 2)
+    dx = L1[-1][1] + gap - src[0][0]
+    dy = base1 - base2
+    rect = (src[0][0] - 0.1, split, src[-1][1] + 0.1, area[3])
+    copy_shapes(pdf, pi, rect, dx, dy)
+    return len(L1), len(L2), round(dx, 1), round(dy, 1)

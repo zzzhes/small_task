@@ -116,11 +116,11 @@ def mechbox():
         (683, 552, 860, 628),     # request block
     ])
     # title (H 18, lead 22)
-    # does not fit 2 lines at 18pt (catalog standard) -> 16pt, 2 lines, same cap top
-    E.put(pdf, pi, 44.4, 54.6, 'КОНСТРУКТОРЫ И\xa0ПЛАТФОРМА С\xa0ИИ', 'H', 16, tcol)
-    E.put(pdf, pi, 44.4, 74.6, 'ДЛЯ\xa0ОБУЧЕНИЯ РОБОТОТЕХНИКЕ ДОМА И\xa0В\xa0ШКОЛЕ', 'H', 16, tcol)
+    # ExtendedSemibold 18pt: does not fit in 2 lines -> 3 lines, description shifted down
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, 'Конструкторы и платформа с ИИ для обучения робототехнике дома и в школе'.upper(),
+                      'H', 18, tcol, 545, 22)
     # description
-    E.put_rich(pdf, pi, 44.0, 116.0, [('Мехбокс', 'B'), (' объединяет конструкторы с собственным контроллером, '
+    E.put_rich(pdf, pi, 44.0, 116.0 + 22 * max(0, nt - 2), [('Мехбокс', 'B'), (' объединяет конструкторы с собственным контроллером, '
                'облачную образовательную платформу и ИИ-учителя', 'R')], 14, navy, 255, 17)
     # innovation bullets (copy original bullet 1 shape)
     b1 = (42, 295, 62, 312)
@@ -214,11 +214,31 @@ def plastilin():
     E.replace_image(pdf, right, Image.open('x/ppt/media/image1.png'), 'contain', bg=(21, 21, 21, 255))
 
 
-EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin]
+def aiolos():
+    from PIL import Image
+    from cat import image_placements
+    pdf, pi = page(58)
+    x = [x for f, n, x, r, c in image_placements(pdf, pi) if r[0] < 400 and r[3] - r[1] > 300][0]
+    W, Hh = int(x.Width), int(x.Height)
+    src = Image.open('/root/.claude/uploads/01d9064f-fcc0-5c7c-99c9-dd8b7cd80bb4/cc6baba3-image.jpg').convert('RGB')
+    # fit to width (slight zoom so the three devices fill the frame), extend the plain backdrop up/down
+    k = W / src.width * 1.15
+    im = src.resize((round(src.width * k), round(src.height * k)), Image.LANCZOS)
+    im = im.crop(((im.width - W) // 2, 0, (im.width - W) // 2 + W, im.height))
+    can = Image.new('RGB', (W, Hh))
+    top = (Hh - im.height) // 2 - 40
+    can.paste(im, (0, top))
+    can.paste(im.crop((0, 0, W, 1)).resize((W, top)), (0, 0))
+    bot = top + im.height
+    can.paste(im.crop((0, im.height - 1, W, im.height)).resize((W, Hh - bot)), (0, bot))
+    E.replace_image(pdf, x, can, 'cover', quality=92)
+
+
+EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
-INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67)]
+INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.WEGOSTY, 83)]
 
 
 def old_to_new(n, inserts):
@@ -255,16 +275,25 @@ def finalize():
     # page g2 (index 1): right column = Медтех (21) + first 10 Урбан rows
     erase(toc, 1, [(650, 88, 1215, 840)], max_wh=500)
     F.build_column(toc, 1, stoc, 1, RIGHT, [
-        dict(label_src_top=94.0, color=(0.184314, 0.682353, 0.588235), rows=med),
-        dict(label_src_top=597.0, color=(1.0, 0.6, 0.207843), rows=urb[:10])], pitch)
+        dict(label_src_top=94.0, color=(0.184314, 0.682353, 0.588235), rows=med, label=['Медтех', 'и биотех']),
+        dict(label_src_top=597.0, color=(1.0, 0.6, 0.207843), rows=urb[:10], suffix=True,
+             label=['Урбантех', 'и стройтех'])], pitch)
     # page g3 (index 2)
     erase(toc, 2, [(30, 88, 600, 840), (650, 88, 1215, 840)], max_wh=500)
     F.build_column(toc, 2, stoc, 2, LEFT, [
-        dict(label_src_top=94.0, color=(1.0, 0.6, 0.207843), rows=urb[10:]),
-        dict(label_src_top=321.0, color=(0.478431, 0.752941, 0.996078), rows=rob)], pitch)
+        dict(label_src_top=94.0, color=(1.0, 0.6, 0.207843), rows=urb[10:], suffix=True,
+             label=['Урбантех', 'и стройтех']),
+        dict(label_src_top=321.0, color=(0.478431, 0.752941, 0.996078), rows=rob, label=['Роботы', 'и девайсы'])], pitch)
     F.build_column(toc, 2, stoc, 2, RIGHT, [
-        dict(label_src_top=94.0, color=(0.14902, 0.203922, 0.596078), rows=cre),
-        dict(label_src_top=459.0, color=(0.705882, 0.921569, 0.219608), rows=agr)], pitch)
+        dict(label_src_top=94.0, color=(0.14902, 0.203922, 0.596078), rows=cre, label=['Креатех', 'и эдтех']),
+        dict(label_src_top=459.0, color=(0.705882, 0.921569, 0.219608), rows=agr, label=['Агротех', 'и финтех'])], pitch)
+    # section divider: УРБАН -> УРБАНТЕХ
+    from cat import remove_text_pdf
+    p, i = gidx(26)
+    print('divider suffix', E.add_suffix(PARTS[p], i, (600, 680, 1240, 830)))
+    remove_text_pdf(PARTS[p], i, [(600, 640, 1240, 840)])
+    E.LOG.append((id(PARTS[p]), PARTS[p].pages[i].objgen, 665.0, 742.0, 'Урбантех', 66))
+    E.LOG.append((id(PARTS[p]), PARTS[p].pages[i].objgen, 642.0, 815.0, 'и стройтех', 66))
 
 
 def do_inserts():

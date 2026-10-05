@@ -9,6 +9,8 @@ STYLE, WX, OUT, KERN, SPW = S['style'], S['wx'], S['outline'], S['kern'], S['spw
 FALLBACK = {'R': FD + 'SBSansDisplay-Regular.ttf', 'B': FD + 'SBSansDisplay-Bold.ttf',
             'H': FD + 'SBSansDisplay-ExtendedSemibold.ttf'}
 _ff = {}
+# glyphs whose only document sample is bold-looking -> take from the font file
+FORCE_FB = {'R': set('UW')}
 
 
 def _fb(style):
@@ -26,9 +28,9 @@ def glyph_seq(text, style):
     seq = []
     for ch in text:
         if ch in (' ', '\xa0'):
-            seq.append((ch, None, SPW[style]))
+            seq.append((ch, None, _fb('H').text_length(' ', 1.0) if style == 'H' else SPW[style]))
             continue
-        sig = STYLE[style].get(_key(ch, style))
+        sig = None if style == 'H' or ch in FORCE_FB.get(style, ()) else STYLE[style].get(_key(ch, style))   # headings: ExtendedSemibold file
         if sig is None:
             seq.append((ch, None, _fb(style).text_length(_key(ch, style), 1.0)))
         else:

@@ -66,6 +66,10 @@ def build_column(pdf, pi, spdf, spi, col, blocks, pitch):
         dy = top - b['label_src_top']
         E.copy_shapes(pdf, pi, (lx0, b['label_src_top'] - 2, lx1, b['label_src_top'] + 60), 0, dy,
                       src_pi=spi, src_pdf=spdf)
+        if b.get('suffix'):
+            E.add_suffix(pdf, pi, (lx0, top - 4, lx1, top + 60))
+        for j, lt in enumerate(b.get('label', [])):
+            E.LOG.append((id(pdf), pdf.pages[pi].objgen, lx0 + 6, top + 20 + 24 * j, lt, 20))
         for i, (title, num) in enumerate(b['rows']):
             yy = y + i * pitch
             E.put(pdf, pi, col['x'], yy, title, 'R', 12, NAVY)

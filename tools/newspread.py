@@ -34,8 +34,8 @@ def build(pdf, pi, spdf, spi, D):
     erase(pdf, pi, D['erase'])
     nav, tcol, rcol = col['body'], col['title'], col['right']
     # ---- left page
-    for i, t in enumerate(D['title']):
-        E.put(pdf, pi, 44.4, 56.0 + 22 * i, t, 'H', 18, tcol)
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
+    assert nt <= 2, ('title > 2 lines', D['title'])
     E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
     y = 305.0
     for runs in D['innov']:
@@ -63,6 +63,7 @@ def build(pdf, pi, spdf, spi, D):
     assert last < 812, ('effect too long', last)
     # ---- right page
     for i, t in enumerate(D['company']):
+        assert T.width(t, 'H', 18) < 390, t
         E.put(pdf, pi, 685.4, 56.0 + 22 * i, t, 'H', 18, rcol)
     sy = 82.0 + 22 * (len(D['company']) - 1)
     E.put_par(pdf, pi, 685.4, sy, D['subtitle'], 'R', 14, rcol, 375, 17)
