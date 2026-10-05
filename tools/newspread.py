@@ -140,6 +140,8 @@ def put_photos(pdf, pi, D):
         if mode == 'contain' and im.mode in ('RGB',):
             px = im.convert('RGB').getpixel((2, 2))
             bg = px
+        if kind == 'speaker' and D.get('speaker_clip'):
+            c = D['speaker_clip']
         E.fit_image(pdf, x, im, r, c, mode=mode, focus=focus, bg=bg, pad=0.06 if mode == 'logo' else 0.0)
 
 
@@ -167,7 +169,7 @@ def wordmark(W, Hh, text, rw, rh, color=(12, 22, 40)):
 
 
 def build_robo(pdf, pi, spdf, spi, D):
-    """RoboProbeTest: Kinetronika template (g60), only blocks we have data for."""
+    """RoboProbeTest: Kinetronika template (g60)."""
     L = {l['text'].strip(): l for l in E.lines(spdf, spi)}
     nav = E.color_in(spdf, spi, E.line_rect(L['волокном']))
     tcol = E.color_in(spdf, spi, E.line_rect(L['КОМПОЗИТОВ']))
@@ -176,22 +178,50 @@ def build_robo(pdf, pi, spdf, spi, D):
     sup = E.color_in(spdf, spi, E.line_rect(L['Участник Сбер500']))
     erase(pdf, pi, [(40, 38, 600, 84), (40, 100, 322, 270), (40, 288, 322, 470),
                     (75, 552, 222, 650), (250, 552, 398, 650), (425, 552, 600, 650),
-                    (40, 650, 610, 800),
-                    (683, 38, 1062, 125), (683, 125, 965, 170), (976, 148, 1210, 200),
+                    (40, 650, 610, 815),
+                    (683, 38, 1062, 125), (700, 148, 965, 168), (976, 148, 1210, 200),
                     (750, 198, 960, 236), (683, 295, 860, 360), (683, 552, 860, 800)])
     nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
     assert nt <= 2, D['title']
-    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
-    y = 305.0
+    n_, last = E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    hy = max(280.0, last + 30)
+    if hy > 280.0:
+        erase(pdf, pi, [(40, 268, 300, 284)])
+        E.copy_shapes(pdf, pi, (40, 268, 300, 284), 0, hy - 280.0, src_pi=spi, src_pdf=spdf)
+    y = hy + 25
     for runs in D['innov']:
         E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
-        n, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
         y = last + 22
+    assert last < 530, ('robo innov', last)
     for x, t in zip((77.0, 252.3, 427.7), D['adv']):
-        n, last = E.put_par(pdf, pi, x, 566.0, t, 'R', 12, nav, 134, 14)
+        n_, last = E.put_par(pdf, pi, x, 566.0, t, 'R', 12, nav, 134, 14)
         assert last < 650, t
+    # implementations (header copied from a template with this block) + effect (header moved right)
+    hp, hi = D['impl_head_src']
+    E.copy_shapes(pdf, pi, (40, 650, 200, 668), 0, 0, src_pi=hi, src_pdf=hp)
+    E.copy_shapes(pdf, pi, (40, 650, 300, 668), 264, 0, src_pi=spi, src_pdf=spdf)
+    E.put(pdf, pi, 44.0, 696.0, D['impl_num'], 'H', 24, acc)
+    n_, last = E.put_par(pdf, pi, 44.0, 712.0, D['impl_cap'], 'R', 12, nav, 250, 14)
+    y = last + 22
+    for t in D['impl']:
+        E.copy_shapes(pdf, pi, (40, 674, 56, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, nav, 236, 14)
+        y = last + 18
+    assert last < 813, ('robo impl', last)
+    y = 686.0
+    for t in D['effect']:
+        E.copy_shapes(pdf, pi, (40, 674, 56, 690), 264, y - 686.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 322.0, y, t, 'R', 12, nav, 262, 14)
+        y = last + 18
+    assert last < 813, ('robo effect', last)
+    # right page
     E.put(pdf, pi, 685.4, 56.0, D['company'], 'H', 18, rcol)
     E.put_par(pdf, pi, 685.4, 82.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    cw = E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
+    dx = 704.4 + cw + 10 - 874.4
+    E.copy_shapes(pdf, pi, (872, 148, 893, 166), dx, 0, src_pi=spi, src_pdf=spdf)
+    E.put(pdf, pi, 896.4 + dx, 162.0, D['staff'], 'R', 12, rcol)
     E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, 0, src_pi=spi, src_pdf=spdf)
     for k, t in enumerate(D['support']):
         E.put(pdf, pi, 988.0, 162.0 + 14 * k, t, 'R', 12, sup)

@@ -84,7 +84,7 @@ def robotfight():
     dy = 20.0
     nb = E.copy_shapes(pdf, pi, (970, y - 9, 986, y + 1), 0, dy)
     assert nb == 1, nb
-    E.put(pdf, pi, x0, y + dy, 'Участник Sber500', 'R', s, col)
+    E.put(pdf, pi, x0, y + dy, 'Участник Сбер500', 'R', s, col)
 
 
 SRC = {p: pikepdf.open('v2/p%d.pdf' % p) for p in range(1, 6)}
@@ -341,7 +341,95 @@ def medcomm():
             E.fit_image(pdf, x, Image.open('assets/mk_phone.png'), r, c, mode='contain', bg=(255, 255, 255))
 
 
-EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm]
+def dot(pdf, pi, cx, cy, r, col):
+    k = r * 0.5523
+    c = ('q %.4f %.4f %.4f rg %.3f %.3f m %.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f %.3f %.3f %.3f %.3f c '
+         '%.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f %.3f %.3f %.3f %.3f c h f Q\n') % (
+        col[0], col[1], col[2], cx + r, E.H - cy,
+        cx + r, E.H - cy + k, cx + k, E.H - cy + r, cx, E.H - cy + r,
+        cx - k, E.H - cy + r, cx - r, E.H - cy + k, cx - r, E.H - cy,
+        cx - r, E.H - cy - k, cx - k, E.H - cy - r, cx, E.H - cy - r,
+        cx + k, E.H - cy - r, cx + r, E.H - cy - k, cx + r, E.H - cy)
+    pdf.pages[pi].contents_add(pdf.make_stream(c.encode()), prepend=False)
+
+
+def sber_support():
+    for g in (25, 67, 98, 99):
+        pdf, pi = page(g)
+        spdf, spi = src(g)
+        col = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Производство и штат')))
+        E.put(pdf, pi, 974.0, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 'H', 14, col, tracking=0.28)
+        dot(pdf, pi, 978.0, 158.0, 3.0, col)
+        E.put(pdf, pi, 988.0, 162.0, 'Участник Сбер500', 'R', 12, col)
+
+
+def fitpolis_trackers():
+    pdf, pi = page(18)
+    spdf, spi = src(18)
+    col = E.color_in(spdf, spi, (58, 740, 290, 754))
+    erase(pdf, pi, [(40, 758, 300, 812)])
+    y = 768.0
+    for t in ['115 видов спорта, подключается к 95% трекеров и приложений', '91% пользователей возвращаются к тренировкам с защитой']:
+        E.copy_shapes(pdf, pi, (40, 726, 56, 742), 0, y - 738.0, src_pi=spi, src_pdf=spdf)
+        n, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, col, 232, 14)
+        y = last + 16
+    assert last <= 813, last
+
+
+def heart():
+    pdf, pi = page(22)
+    spdf, spi = src(22)
+    col = E.color_in(spdf, spi, (58, 750, 270, 762))
+    l = E.find(spdf, spi, 'МОНИКИ')
+    erase(pdf, pi, [E.line_rect(l)])
+    E.put(pdf, pi, 58.0, 760.0, 'ГКБ 23 им.\xa0И.В.\xa0Давыдовского', 'R', 12, col)
+    scol = E.color_in(spdf, spi, (985, 150, 1100, 164))
+    E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, 20, src_pi=spi, src_pdf=spdf)
+    E.put(pdf, pi, 988.0, 182.0, 'Поддержка фонда МедТех', 'R', 12, scol)
+
+
+def statanly():
+    pdf, pi = page(61)
+    spdf, spi = src(61)
+    col = E.color_in(pdf, pi, (44, 136, 260, 152))
+    erase(pdf, pi, [(40, 100, 322, 250)])
+    n, last = E.put_rich(pdf, pi, 44.0, 116.0, [('Statanly Technologies', 'B'), (' — AI-платформа, которая превращает '
+        'текстовый запрос в готовый сценарий видеоаналитики на существующих камерах. Система сама готовит данные '
+        'и обучает модель, позволяя запускать новые задачи контроля без длительной разработки', 'R')], 14, col, 255, 17)
+    assert last < 262, last
+
+
+def freze():
+    pdf, pi = page(59)
+    spdf, spi = src(59)
+    col = E.color_in(pdf, pi, (44, 120, 260, 136))
+    erase(pdf, pi, [(40, 288, 322, 470), (683, 590, 860, 640)])
+    y = 305.0
+    for lead_, rest in [('Иммерсивное FPV-управление', ' — оператор видит обстановку от лица робота через видеоочки '
+                         'и управляет им с помощью джойстика'),
+                        ('Многофункциональная платформа', ' — сменное оборудование позволяет адаптировать робота '
+                         'под разные задачи: от пожаротушения до расчистки завалов')]:
+        E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
+        n, last = E.put_rich(pdf, pi, 66.0, y, [(lead_, 'B'), (rest, 'R')], 14, col, 234, 17)
+        y = last + 22
+    assert last < 530, last
+    E.put_par(pdf, pi, 685.0, 602.0, 'На развитие продукта и пилотные запуски', 'R', 12, col, 160, 14)
+
+
+def neurocode_corners():
+    from PIL import Image, ImageDraw
+    from cat import image_placements
+    pdf, pi = page(62)
+    x = [x for f, n, x, r, c in image_placements(pdf, pi) if f == 'page' and r[0] > 900 and r[3] - r[1] > 300][0]
+    im = pikepdf.PdfImage(x).as_pil_image().convert('RGB')
+    frame = (17, 19, 38)
+    for seed in [(0, 0), (im.width - 1, 0), (0, im.height - 1), (im.width - 1, im.height - 1)]:
+        if sum(im.getpixel(seed)) > 600:
+            ImageDraw.floodfill(im, seed, frame, thresh=60)
+    E.replace_image(pdf, x, im, 'cover', quality=93)
+
+
+EDITS = [axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
@@ -406,12 +494,13 @@ def finalize():
 def do_inserts():
     import newspread as NS
     # process from the end so earlier indices stay valid
+    SD.ROBOPROBE['impl_head_src'] = src(37)
     for D, after in sorted(INSERTS, key=lambda t: (-t[1], t[0].get('order', 0))):
         p, i = gidx(after)
         i += D.get('order', 0)
         tp, ti = gidx(D['tpl'])
         PARTS[p].pages.insert(i + 1, SRC[tp].pages[ti])
-        if D.get('sup_tpl'):
+        if D.get('sup_tpl'):  # noqa
             sp_, si_ = gidx(D['sup_tpl'])
             D['sup_src'] = (SRC[sp_], si_)
         getattr(NS, D.get('builder', 'build'))(PARTS[p], i + 1, SRC[tp], ti, D)
