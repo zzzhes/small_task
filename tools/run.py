@@ -283,11 +283,27 @@ def aiolos_text():
     E.put_par(pdf, pi, 685.0, 602.0, 'на масштабирование пилотного производства', 'R', 12, navy, 160, 14)
 
 
-EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text]
+def trendsee():
+    from PIL import Image
+    from cat import image_placements
+    g = 81
+    pdf, pi = page(g)
+    l = E.find(pdf, pi, 'Анна Береснева')
+    E.replace_line(pdf, pi, l, 'Кирилл Береснев', 'B')
+    A = 'assets/'
+    for f, n, x, r, c in image_placements(pdf, pi):
+        vr = c or r
+        if vr[3] - vr[1] < 40:
+            E.fit_image(pdf, x, Image.open(A + 'trendsee_logo.png'), r, c, mode='logo', pad=0.08)
+        elif vr[2] - vr[0] < 80:
+            E.fit_image(pdf, x, Image.open(A + 'beresnev.jpg'), r, c, mode='cover', focus=(0.5, 0.2))
+
+
+EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
-INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.WEGOSTY, 83)]
+INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83)]
 
 
 def old_to_new(n, inserts):
@@ -308,7 +324,7 @@ def finalize():
     newrows = {}
     for D, after in INSERTS:
         slot = 2 * (after + 1) - 4
-        newrows.setdefault(D['section'], []).append((D['toc'], old_to_new(slot, [i for i in ins if i < slot]) ))
+        newrows.setdefault(D['section'], []).append((D['toc'], old_to_new(slot, [i for i in ins if i < slot]) + 2 * D.get('order', 0)))
     med = secrows(TD.MED, newrows.get('med', []))
     urb = secrows(TD.URB, newrows.get('urban', []))
     rob = secrows(TD.ROB, newrows.get('robots', []))
@@ -317,7 +333,7 @@ def finalize():
     print('urban', urb[-2:], 'robots', rob[-2:], 'create', cre[:1], cre[-1:], 'agro', agr[-1:])
     toc = PARTS[1]
     stoc = SRC[1]
-    pitch = 22.0
+    pitch = 21.5
     RIGHT = dict(label=(655, 800), bar=(803.8, 809.8), x=821.8, right=1202.8)
     LEFT = dict(label=(35, 178), bar=(179.8, 185.8), x=197.8, right=578.8)
     col = lambda c: c
@@ -348,14 +364,15 @@ def finalize():
 def do_inserts():
     import newspread as NS
     # process from the end so earlier indices stay valid
-    for D, after in sorted(INSERTS, key=lambda t: -t[1]):
+    for D, after in sorted(INSERTS, key=lambda t: (-t[1], t[0].get('order', 0))):
         p, i = gidx(after)
+        i += D.get('order', 0)
         tp, ti = gidx(D['tpl'])
         PARTS[p].pages.insert(i + 1, SRC[tp].pages[ti])
         if D.get('sup_tpl'):
             sp_, si_ = gidx(D['sup_tpl'])
             D['sup_src'] = (SRC[sp_], si_)
-        NS.build(PARTS[p], i + 1, SRC[tp], ti, D)
+        getattr(NS, D.get('builder', 'build'))(PARTS[p], i + 1, SRC[tp], ti, D)
         print('inserted', D['logo_text'], 'part', p, 'index', i + 1)
 
 if __name__ == '__main__':

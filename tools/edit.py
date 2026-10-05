@@ -285,3 +285,72 @@ def add_suffix(pdf, pi, area, n=3):
     rect = (src[0][0] - 0.1, split, src[-1][1] + 0.1, area[3])
     copy_shapes(pdf, pi, rect, dx, dy)
     return len(L1), len(L2), round(dx, 1), round(dy, 1)
+
+
+def fit_image(pdf, ximg, pil, r, clip=None, mode='cover', focus=(0.5, 0.5), bg=(255, 255, 255), pad=0.0):
+    """Fill an image XObject so that `pil` shows correctly inside the visible clip.
+    r: placed rect (page units), clip: visible rect or None. mode: cover|contain|logo."""
+    from PIL import Image
+    W, Hh = int(ximg.Width), int(ximg.Height)
+    vr = clip or r
+    # work canvas at placed aspect, ~2000px long side
+    rw, rh = r[2] - r[0], r[3] - r[1]
+    k = 2000 / max(rw, rh)
+    CW, CH = max(1, round(rw * k)), max(1, round(rh * k))
+    bx0 = round((max(vr[0], r[0]) - r[0]) * k)
+    by0 = round((max(vr[1], r[1]) - r[1]) * k)
+    bx1 = round((min(vr[2], r[2]) - r[0]) * k)
+    by1 = round((min(vr[3], r[3]) - r[1]) * k)
+    bw, bh = bx1 - bx0, by1 - by0
+    src = pil.convert('RGBA')
+    can = Image.new('RGBA', (CW, CH), bg + (255,))
+    if mode == 'cover':
+        s = max(bw / src.width, bh / src.height)
+        im = src.resize((max(bw, round(src.width * s)), max(bh, round(src.height * s))), Image.LANCZOS)
+        x0 = int((im.width - bw) * focus[0])
+        y0 = int((im.height - bh) * focus[1])
+        # whole canvas first (so areas outside the clip are not empty), then the clip box
+        s2 = max(CW / src.width, CH / src.height)
+        big = src.resize((max(CW, round(src.width * s2)), max(CH, round(src.height * s2))), Image.LANCZOS)
+        can.alpha_composite(big.crop(((big.width - CW) // 2, (big.height - CH) // 2,
+                                      (big.width - CW) // 2 + CW, (big.height - CH) // 2 + CH)))
+        can.alpha_composite(im.crop((x0, y0, x0 + bw, y0 + bh)), (bx0, by0))
+    else:
+        iw, ih = bw * (1 - 2 * pad), bh * (1 - 2 * pad)
+        s = min(iw / src.width, ih / src.height)
+        im = src.resize((max(1, round(src.width * s)), max(1, round(src.height * s))), Image.LANCZOS)
+        can.alpha_composite(im, (bx0 + (bw - im.width) // 2, by0 + (bh - im.height) // 2))
+    if mode == 'logo' and '/SMask' in ximg:
+        del ximg['/SMask']
+    out = can.convert('RGB').resize((W, Hh), Image.LANCZOS)
+    replace_image(pdf, ximg, out, 'cover', quality=92)
+
+
+def add_image(pdf, pi, pil, rect, pad=0.06, bg=(255, 255, 255)):
+    """Place a new image (contain) into rect (fitz coords) on the page."""
+    from PIL import Image
+    import io as _io
+    x0, y0, x1, y1 = rect
+    k = 8.0
+    CW, CH = round((x1 - x0) * k), round((y1 - y0) * k)
+    src = pil.convert('RGBA')
+    can = Image.new('RGBA', (CW, CH), bg + (255,))
+    s = min(CW * (1 - 2 * pad) / src.width, CH * (1 - 2 * pad) / src.height)
+    im = src.resize((max(1, round(src.width * s)), max(1, round(src.height * s))), Image.LANCZOS)
+    can.alpha_composite(im, ((CW - im.width) // 2, (CH - im.height) // 2))
+    b = _io.BytesIO()
+    can.convert('RGB').save(b, 'JPEG', quality=93)
+    xo = pikepdf.Stream(pdf, b.getvalue())
+    xo.Type = pikepdf.Name.XObject
+    xo.Subtype = pikepdf.Name.Image
+    xo.Width, xo.Height = CW, CH
+    xo.ColorSpace = pikepdf.Name.DeviceRGB
+    xo.BitsPerComponent = 8
+    xo.Filter = pikepdf.Name.DCTDecode
+    res = pdf.pages[pi].obj.Resources
+    if '/XObject' not in res:
+        res.XObject = pikepdf.Dictionary()
+    name = '/ImAdd%d' % len(res.XObject)
+    res.XObject[name] = xo
+    s = 'q %.3f 0 0 %.3f %.3f %.3f cm %s Do Q\n' % (x1 - x0, y1 - y0, x0, H - y1, name)
+    pdf.pages[pi].contents_add(pdf.make_stream(s.encode()), prepend=False)

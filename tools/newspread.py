@@ -97,20 +97,50 @@ def build(pdf, pi, spdf, spi, D):
     w = E.put(pdf, pi, 685.0, 582.0, D['ask_amt'], 'H', 24, col['ask'])
     E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, col['ask'])
     E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, 160, 14)
-    # ---- pictures -> placeholders
+    # ---- pictures
+    put_photos(pdf, pi, D)
+
+
+def put_photos(pdf, pi, D):
+    from PIL import Image
     imgs = image_placements(pdf, pi)
+    ph = D.get('photos', {})
     for f, n, x, r, c in imgs:
         vr = c or r
         rw, rh = vr[2] - vr[0], vr[3] - vr[1]
         W, Hh = int(x.Width), int(x.Height)
-        if rw < 80 and rh < 80:      # speaker photo
-            E.replace_image(pdf, x, placeholder(W, Hh, ''), 'cover')
-        elif rh < 40:                # logo -> wordmark raster (opaque)
+        if rw < 80 and rh < 110:
+            kind = 'speaker'
+        elif rh < 40:
+            kind = 'logo'
+        elif vr[0] < 623:
+            kind = 'left'
+        else:
+            kind = 'right'
+        spec = ph.get(kind)
+        if kind == 'logo' and D.get('logo_box'):
+            E.replace_image(pdf, x, Image.new('RGB', (8, 8), (255, 255, 255)), 'cover')
             if '/SMask' in x:
                 del x['/SMask']
-            E.replace_image(pdf, x, wordmark(W, Hh, D['logo_text'], rw, rh), 'cover')
-        else:
-            E.replace_image(pdf, x, placeholder(W, Hh, D['photo_label']), 'cover')
+            E.add_image(pdf, pi, Image.open(spec[0]), D['logo_box'], pad=0.1)
+            continue
+        if spec is None:
+            if kind == 'logo':
+                E.replace_image(pdf, x, wordmark(W, Hh, D['logo_text'], rw, rh), 'cover')
+                if '/SMask' in x:
+                    del x['/SMask']
+            elif kind == 'speaker':
+                E.replace_image(pdf, x, placeholder(W, Hh, ''), 'cover')
+            else:
+                E.replace_image(pdf, x, placeholder(W, Hh, D.get('photo_label', '')), 'cover')
+            continue
+        path, mode, focus = spec if len(spec) == 3 else (spec[0], spec[1], (0.5, 0.5))
+        im = Image.open(path)
+        bg = (255, 255, 255)
+        if mode == 'contain' and im.mode in ('RGB',):
+            px = im.convert('RGB').getpixel((2, 2))
+            bg = px
+        E.fit_image(pdf, x, im, r, c, mode=mode, focus=focus, bg=bg, pad=0.06 if mode == 'logo' else 0.0)
 
 
 def wordmark(W, Hh, text, rw, rh, color=(12, 22, 40)):
@@ -134,3 +164,40 @@ def wordmark(W, Hh, text, rw, rh, color=(12, 22, 40)):
     tmp = tmp.crop(bb)
     im.alpha_composite(tmp, ((W - tmp.width) // 2, (Hh - tmp.height) // 2))
     return im
+
+
+def build_robo(pdf, pi, spdf, spi, D):
+    """RoboProbeTest: Kinetronika template (g60), only blocks we have data for."""
+    L = {l['text'].strip(): l for l in E.lines(spdf, spi)}
+    nav = E.color_in(spdf, spi, E.line_rect(L['волокном']))
+    tcol = E.color_in(spdf, spi, E.line_rect(L['КОМПОЗИТОВ']))
+    rcol = E.color_in(spdf, spi, E.line_rect(L['и\xa0электроники']))
+    acc = E.color_in(spdf, spi, E.line_rect(L['₽50']))
+    sup = E.color_in(spdf, spi, E.line_rect(L['Участник Сбер500']))
+    erase(pdf, pi, [(40, 38, 600, 84), (40, 100, 322, 270), (40, 288, 322, 470),
+                    (75, 552, 222, 650), (250, 552, 398, 650), (425, 552, 600, 650),
+                    (40, 650, 610, 800),
+                    (683, 38, 1062, 125), (683, 125, 965, 170), (976, 148, 1210, 200),
+                    (750, 198, 960, 236), (683, 295, 860, 360), (683, 552, 860, 800)])
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
+    assert nt <= 2, D['title']
+    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    y = 305.0
+    for runs in D['innov']:
+        E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
+        n, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        y = last + 22
+    for x, t in zip((77.0, 252.3, 427.7), D['adv']):
+        n, last = E.put_par(pdf, pi, x, 566.0, t, 'R', 12, nav, 134, 14)
+        assert last < 650, t
+    E.put(pdf, pi, 685.4, 56.0, D['company'], 'H', 18, rcol)
+    E.put_par(pdf, pi, 685.4, 82.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, 0, src_pi=spi, src_pdf=spdf)
+    for k, t in enumerate(D['support']):
+        E.put(pdf, pi, 988.0, 162.0 + 14 * k, t, 'R', 12, sup)
+    E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
+    E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
+    w = E.put(pdf, pi, 685.0, 582.0, D['ask_amt'], 'H', 24, acc)
+    E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, acc)
+    E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, 160, 14)
+    put_photos(pdf, pi, D)

@@ -5,6 +5,7 @@ LEFT_ERASE = [(40, 38, 600, 84), (40, 100, 322, 270), (40, 288, 322, 530),
 RIGHT_ERASE = [(683, 38, 1062, 125), (700, 150, 760, 166), (779, 150, 900, 166),
                (750, 198, 960, 236), (683, 322, 860, 430), (683, 552, 860, 800)]
 ASI = [['Участник инвестиционного Демо-', 'дня конкурса брендов «Знай\xa0наших»']]
+A = '/tmp/claude-0/-home-user-small-task/01d9064f-fcc0-5c7c-99c9-dd8b7cd80bb4/scratchpad/assets/'
 PH = 'Фото будет\nзаменено'
 
 GARPIX = dict(
@@ -37,6 +38,8 @@ GARPIX = dict(
     rev_head=308.0, revenue=[('2025', '₽615,1', None), ('2024', '₽580,4', None)],
     ask_amt='₽150', ask_text='на масштабирование в РФ и СНГ и развитие дообучения ИИ-ядра',
     photo_label=PH, logo_text='GARPIX',
+    photos=dict(logo=(A+'garpix_logo.png', 'logo'), left=(A+'garpix_truck.jpg', 'cover', (0.5, 0.5)),
+                right=(A+'garpix_laptop.png', 'contain'), speaker=(A+'gataulina.jpg', 'cover', (0.5, 0.2))),
 )
 
 HIVETRACE = dict(
@@ -67,6 +70,8 @@ HIVETRACE = dict(
     rev_head=308.0, revenue=[('2026', '₽17,6', 'I–III\xa0кв.'), ('2025', '₽19,4', None)],
     ask_amt='₽100', ask_text='на усиление разработки защитных моделей',
     photo_label=PH, logo_text='HiveTrace',
+    photos=dict(logo=(A+'hive_logo.png', 'logo'), left=(A+'hive_mail.png', 'contain'),
+                right=(A+'hive_shot.png', 'cover', (0.0, 0.0)), speaker=(A+'kokuykin.jpg', 'cover', (0.5, 0.2))),
 )
 
 WEGOSTY = dict(
@@ -102,4 +107,27 @@ WEGOSTY = dict(
     rev_head=308.0, revenue=[('2026', '₽5,7', 'I–III\xa0кв.'), ('2025', '₽1,4', None)],
     ask_amt='₽150', ask_text='на M&A, масштабирование по России и СНГ. Стратегические заказчики и пилоты с регионами',
     photo_label=PH, logo_text='WEGOSTY',
+    photos=dict(logo=(A+'wego_logo.png', 'logo'), left=(A+'wego_dish.jpg', 'cover', (0.5, 0.5)),
+                right=(A+'wego_abrau.jpg', 'cover', (0.45, 0.5)), speaker=(A+'tyan.jpg', 'cover', (0.5, 0.2))),
+)
+
+ROBOPROBE = dict(
+    tpl=60, section='robots', order=1, builder='build_robo',
+    toc='ПАК для автоматизированного тестирования СВЧ-плат',
+    title='ПАК ДЛЯ АВТОМАТИЗИРОВАННОГО ТЕСТИРОВАНИЯ СВЧ-ПЛАТ',
+    desc=[('RoboProbeTest', 'B'), (' — ПАК для автоматизированного тестирования СВЧ-плат методом «летающего '
+          'зонда»: робоплатформа подключается к существующему ВАЦ', 'R')],
+    innov=[[('Распознавание контактных площадок', 'B'), (' и автоматическое позиционирование зондов', 'R')],
+           [('Запуск измерений и сбор данных', 'B'), (' без ручного цикла и влияния человеческого фактора', 'R')]],
+    adv=['Автоматизирует целевой цикл измерений с 2–8 часов до 15–40 минут',
+         'Автоматизация существующего ВАЦ при более низком входном чеке',
+         'Больше измерений за ту же смену и меньше ручной зависимости'],
+    company='РОБОТЕСТ СИСТЕМС',
+    subtitle='разработчик ПАК для автоматизированного тестирования СВЧ-плат',
+    support=['Финалист молодёжных', 'акселераторов Сбера и Москвы'],
+    speaker='Александр Кокошкин', role='CFO/CMO',
+    ask_amt='от\xa0₽5', ask_text='на доработку продукта и дальнейшие испытания',
+    logo_text='РобоТест Системс', logo_box=(1096, 46, 1198, 80),
+    photos=dict(logo=(A + 'rts_logo.png', 'logo'), left=(A + 'rpt_probe.png', 'cover', (0.45, 0.4)),
+                right=(A + 'rpt_gantry.webp', 'cover', (0.5, 0.5)), speaker=(A + 'kokoshkin.jpg', 'cover', (0.5, 0.15))),
 )
