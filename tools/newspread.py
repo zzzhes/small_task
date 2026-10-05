@@ -287,3 +287,60 @@ def build_cropgen(pdf, pi, spdf, spi, D):
     E.put_par(pdf, pi, 685.0, 566.0, D['ask_text'], 'R', 14, nav, 160, 17)
     put_photos(pdf, pi, D)
     E.add_image(pdf, pi, Image.open(D['flag']), (fx, 44.5, fx + 36, 65.5), pad=0.0, bg=(179, 235, 56))
+
+
+def build_electica(pdf, pi, spdf, spi, D):
+    """Electica Energy: urban template g37 (Accel. Digital), year instead of revenue, no support block."""
+    from PIL import Image
+    L = {l['text'].strip(): l for l in E.lines(spdf, spi)}
+    nav = E.color_in(spdf, spi, E.line_rect(L['модель здания']))
+    tcol = E.color_in(spdf, spi, E.line_rect(L['мониторинга стройплощадок']))
+    rcol = E.color_in(spdf, spi, E.line_rect(L['московский разработчик цифровых платформ']))
+    hcol = E.color_in(spdf, spi, E.line_rect(L['Производство и штат']))
+    acc = E.color_in(spdf, spi, E.line_rect(L['15 000+']))
+    erase(pdf, pi, [(40, 38, 600, 84), (40, 100, 322, 270), (40, 288, 322, 530),
+                    (75, 552, 222, 650), (250, 552, 398, 650), (398, 552, 600, 650),
+                    (40, 675, 302, 815), (305, 675, 610, 815),
+                    (683, 38, 1062, 125), (700, 148, 965, 168), (750, 198, 960, 236),
+                    (683, 295, 860, 430), (968, 128, 1215, 215), (683, 552, 860, 640)])
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
+    assert nt <= 2, D['title']
+    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    y = 305.0
+    for runs in D['innov']:
+        E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        y = last + 22
+    assert last < 530, ('electica innov', last)
+    for x, t in zip((77.0, 252.3), D['adv']):
+        n_, last = E.put_par(pdf, pi, x, 566.0, t, 'R', 12, nav, 142, 14)
+        assert last < 650, t
+    E.put(pdf, pi, 44.0, 696.0, D['impl_num'], 'H', 24, acc)
+    n_, last = E.put_par(pdf, pi, 44.0, 712.0, D['impl_cap'], 'R', 12, nav, 250, 14)
+    y = last + 26
+    for t in D['impl']:
+        E.copy_shapes(pdf, pi, (40, 726, 56, 742), 0, y - 738.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, nav, 236, 14)
+        y = last + 18
+    assert last < 813, ('electica impl', last)
+    y = 686.0
+    for t in D['effect']:
+        E.copy_shapes(pdf, pi, (304, 674, 320, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 322.0, y, t, 'R', 12, nav, 262, 14)
+        y = last + 18
+    assert last < 813, ('electica effect', last)
+    fx = None
+    for i, t in enumerate(D['company']):
+        w = E.put(pdf, pi, 685.4, 56.0 + 22 * i, t, 'H', 18, rcol)
+        if i == 0:
+            fx = 685.4 + w + 8
+    E.put_par(pdf, pi, 685.4, 104.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
+    E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
+    E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
+    E.put(pdf, pi, 685.4, 308.0, 'ГОД', 'H', 14, hcol, tracking=0.28)
+    E.put(pdf, pi, 685.4, 325.0, 'ОСНОВАНИЯ', 'H', 14, hcol, tracking=0.28)
+    E.put(pdf, pi, 685.4, 351.0, D['year'], 'H', 16, hcol)
+    E.put_par(pdf, pi, 685.0, 566.0, D['ask_text'], 'R', 14, nav, 160, 17)
+    put_photos(pdf, pi, D)
+    E.add_image(pdf, pi, Image.open(D['flag']), (fx, 44.5, fx + 36, 65.5), pad=0.0, bg=(255, 153, 52))

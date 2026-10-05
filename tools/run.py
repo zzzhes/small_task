@@ -439,7 +439,7 @@ EDITS = [kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiol
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
-INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83), (SD.CROPGEN, 99)]
+INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83), (SD.CROPGEN, 99), (SD.ELECTICA, 45)]
 
 
 def old_to_new(n, inserts):
@@ -477,12 +477,12 @@ def finalize():
     erase(toc, 1, [(650, 88, 1215, 840)], max_wh=500)
     F.build_column(toc, 1, stoc, 1, RIGHT, [
         dict(label_src_top=94.0, color=(0.184314, 0.682353, 0.588235), rows=med, label=['Медтех', 'и биотех']),
-        dict(label_src_top=597.0, color=(1.0, 0.6, 0.207843), rows=urb[:10], suffix=True,
+        dict(label_src_top=597.0, color=(1.0, 0.6, 0.207843), rows=urb[:11], suffix=True,
              label=['Урбантех', 'и стройтех'])], pitch)
     # page g3 (index 2)
     erase(toc, 2, [(30, 88, 600, 840), (650, 88, 1215, 840)], max_wh=500)
     F.build_column(toc, 2, stoc, 2, LEFT, [
-        dict(label_src_top=94.0, color=(1.0, 0.6, 0.207843), rows=urb[10:], suffix=True,
+        dict(label_src_top=94.0, color=(1.0, 0.6, 0.207843), rows=urb[11:], suffix=True,
              label=['Урбантех', 'и стройтех']),
         dict(label_src_top=321.0, color=(0.478431, 0.752941, 0.996078), rows=rob, label=['Роботы', 'и девайсы'])], pitch)
     F.build_column(toc, 2, stoc, 2, RIGHT, [
@@ -497,6 +497,9 @@ def finalize():
     E.LOG.append((id(PARTS[p]), PARTS[p].pages[i].objgen, 642.0, 815.0, 'и стройтех', 66))
 
 
+_KEEP = []
+
+
 def do_inserts():
     import newspread as NS
     # process from the end so earlier indices stay valid
@@ -505,7 +508,9 @@ def do_inserts():
         p, i = gidx(after)
         i += D.get('order', 0)
         tp, ti = gidx(D['tpl'])
-        PARTS[p].pages.insert(i + 1, SRC[tp].pages[ti])
+        fresh = pikepdf.open('v2/p%d.pdf' % tp)   # own copy: templates used twice must not share objects
+        PARTS[p].pages.insert(i + 1, fresh.pages[ti])
+        _KEEP.append(fresh)
         if D.get('sup_tpl'):  # noqa
             sp_, si_ = gidx(D['sup_tpl'])
             D['sup_src'] = (SRC[sp_], si_)

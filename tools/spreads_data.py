@@ -168,5 +168,34 @@ CROPGEN = dict(
     ask_text='Инвестиции, продажи и партнёрства',
     photo_label=PH, logo_text='CropGen',
     logo_box=(1096, 46, 1198, 80),
-    photos=dict(speaker=(A + 'gote.jpg', 'cover', (0.5, 0.3)), logo=(A + 'cropgen_logo.png', 'logo')),
+    photos=dict(speaker=(A + 'gote.jpg', 'cover', (0.5, 0.3)), logo=(A + 'cropgen_logo.png', 'logo'),
+                left=(A + 'cg_left.jpg', 'cover', (0.5, 0.5)), right=(A + 'cg_phone.png', 'contain')),
+)
+
+ELECTICA = dict(
+    tpl=37, section='urban', order=1, builder='build_electica',
+    toc='ИИ-управление зарядкой батарей для электроавтопарков',
+    title='ИИ-УПРАВЛЕНИЕ ЗАРЯДКОЙ БАТАРЕЙ ДЛЯ ЭЛЕКТРОАВТОПАРКОВ',
+    desc=[('Electica Energy', 'B'), (' — платформа ElecticaOS на базе агентного ИИ управляет зарядкой коммерческих '
+          'аккумуляторов в реальном времени: продлевает срок службы батарей на 25% и предотвращает простои '
+          'электробусов, дронов и eVTOL', 'R')],
+    innov=[[('Замкнутый цикл управления зарядом:', 'B'), (' прогноз, решение, действие', 'R')],
+           [('Патентованная адаптивная зарядка', 'B'), (' подстраивается под состояние каждой ячейки', 'R')],
+           [('Агентная архитектура', 'B'), (' масштабируется с 60 до 10 000+ активов без замены оборудования', 'R')]],
+    adv=['Единственный игрок, который одновременно управляет зарядкой и собирает данные',
+         'Фокус на B2B с высокой утилизацией: автобусы, дроны, BESS'],
+    impl_num='$600K', impl_cap='контракт (LOI) с BonV Aero, развёрнуто 40+ активов:',
+    impl=['NueGo Electric: пилот на электробусах, точность прогноза 97%',
+          'VECV (Volvo Group и Eicher Motors): пилот интеграции ElecticaOS'],
+    effect=['До +25% циклов батареи: 1750 против 1400 у стандартных решений',
+            'Экономия до $13 000 в год на одном автобусе за счёт предотвращения простоев',
+            'Защита батареи — до 50% стоимости актива — от преждевременной замены'],
+    company=['ELECTICA ENERGY', 'PRIVATE LIMITED'], flag=A + 'flag_india_orange.png',
+    subtitle='разработчик ИИ-платформы для зарядки батарей',
+    city='Мадхья-Прадеш, Индия', year='2022',
+    speaker='Arpit Kshirsagar', role='директор и CTO',
+    ask_text='Инвестиции, продажи и партнёрства',
+    photo_label=PH, logo_text='Electica', logo_box=(1096, 46, 1198, 80),
+    photos=dict(logo=(A + 'electica_logo.png', 'logo'), speaker=(A + 'arpit.jpg', 'cover', (0.5, 0.35)),
+                left=(A + 'el_left.jpg', 'cover', (0.0, 0.0)), right=(A + 'el_right.jpg', 'cover', (0.0, 0.0))),
 )
