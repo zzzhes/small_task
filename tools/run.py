@@ -319,7 +319,29 @@ def neurocode_team():
         E.put(pdf, pi, x + 46, y + 30, role, 'R', 9, col)
 
 
-EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team]
+def medcomm():
+    from PIL import Image
+    from cat import image_placements
+    g = 24
+    pdf, pi = page(g)
+    spdf, spi = src(g)
+    L = {l['text'].strip(): l for l in E.lines(spdf, spi)}
+    tcol = E.color_in(spdf, spi, E.line_rect(L['ПАЦИЕНТОВ РОССИЙСКИХ КЛИНИК']))
+    navy = E.color_in(spdf, spi, E.line_rect(L['заявку на\xa0лечение в\xa0России']))
+    rcol = E.color_in(spdf, spi, E.line_rect(L['генеральный директор']))
+    erase(pdf, pi, [(40, 38, 600, 84), (40, 100, 322, 192), (750, 198, 960, 218)])
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, 'МУЛЬТИЯЗЫЧНЫЙ ЦИФРОВОЙ ИНСТРУМЕНТ ДЛЯ ИНОСТРАННЫХ ПАЦИЕНТОВ ИЗ СТРАН БРИКС+ И СНГ',
+                      'H', 18, tcol, 545, 22)
+    E.put_rich(pdf, pi, 44.0, 116.0 + 22 * max(0, nt - 2), [('«Медицинские коммуникации»', 'B'),
+               (' — собирает анамнез на родном языке пациента, переводит медицинские документы и оформляет '
+                'заявку на лечение в России', 'R')], 14, navy, 255, 17)
+    E.put(pdf, pi, 755.4, 213.0, 'Ульяна Каниовская', 'B', 14, rcol)
+    for f, n, x, r, c in image_placements(pdf, pi):
+        if r[0] > 800 and (r[3] - r[1]) > 300:
+            E.fit_image(pdf, x, Image.open('assets/mk_phone.png'), r, c, mode='contain', bg=(255, 255, 255))
+
+
+EDITS = [sber500, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
