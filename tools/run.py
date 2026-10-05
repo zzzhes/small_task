@@ -84,7 +84,7 @@ def robotfight():
     dy = 20.0
     nb = E.copy_shapes(pdf, pi, (970, y - 9, 986, y + 1), 0, dy)
     assert nb == 1, nb
-    E.put(pdf, pi, x0, y + dy, 'Участник Сбер500', 'R', s, col)
+    E.put(pdf, pi, x0, y + dy, 'Участник Sber500', 'R', s, col)
 
 
 SRC = {p: pikepdf.open('v2/p%d.pdf' % p) for p in range(1, 6)}
@@ -354,13 +354,13 @@ def dot(pdf, pi, cx, cy, r, col):
 
 
 def sber_support():
-    for g in (25, 67, 98, 99):
+    for g in (25, 67, 98, 99, 55, 56, 57, 61):
         pdf, pi = page(g)
         spdf, spi = src(g)
         col = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Производство и штат')))
         E.put(pdf, pi, 974.0, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 'H', 14, col, tracking=0.28)
         dot(pdf, pi, 978.0, 158.0, 3.0, col)
-        E.put(pdf, pi, 988.0, 162.0, 'Участник Сбер500', 'R', 12, col)
+        E.put(pdf, pi, 988.0, 162.0, 'Участник Sber500', 'R', 12, col)
 
 
 def fitpolis_trackers():
@@ -435,7 +435,28 @@ def kinetronika_staff():
     E.replace_line(pdf, pi, l, '5\xa0человек', 'R')
 
 
-EDITS = [kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners]
+def plastilin_sber():
+    pdf, pi = page(93)
+    spdf, spi = src(93)
+    col = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Москва')))
+    E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, 20, src_pi=spi, src_pdf=spdf)
+    E.put(pdf, pi, 988.0, 182.28, 'Участник Sber500', 'R', 12, col)
+
+
+def trendsee_ask():
+    pdf, pi = page(81)
+    spdf, spi = src(81)
+    nav = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Поиск новых')))
+    sp2, si2 = src(80)
+    acc = E.color_in(sp2, si2, E.line_rect(E.find(sp2, si2, '₽50')))
+    erase(pdf, pi, [(683, 552, 860, 600)])
+    w = E.put(pdf, pi, 685.0, 582.0, '₽20', 'H', 24, acc)
+    E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, acc)
+    E.put_par(pdf, pi, 685.0, 602.0, 'Для масштабирования в СНГ и выхода в страны БРИКС. Открыты к стратегическим партнёрствам',
+              'R', 12, nav, 175, 14)
+
+
+EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
