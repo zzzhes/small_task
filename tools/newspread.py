@@ -231,3 +231,59 @@ def build_robo(pdf, pi, spdf, spi, D):
     E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, acc)
     E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, 160, 14)
     put_photos(pdf, pi, D)
+
+
+def build_cropgen(pdf, pi, spdf, spi, D):
+    """CropGen: Agavita template (g99)."""
+    from PIL import Image
+    L = {l['text'].strip(): l for l in E.lines(spdf, spi)}
+    nav = E.color_in(spdf, spi, E.line_rect(L['упитанность и\xa0поведение']))
+    tcol = E.color_in(spdf, spi, E.line_rect(L['с\xa0компьютерным зрением']))
+    rcol = E.color_in(spdf, spi, E.line_rect(L['управления аквакультурой']))
+    acc = E.color_in(spdf, spi, E.line_rect(L['760']))
+    erase(pdf, pi, [(40, 38, 600, 84), (40, 100, 322, 270), (40, 288, 322, 470),
+                    (75, 552, 222, 650), (250, 552, 398, 650), (425, 552, 600, 650),
+                    (40, 680, 302, 815), (305, 675, 610, 815),
+                    (683, 38, 1062, 125), (878, 36, 930, 70), (700, 148, 965, 168),
+                    (750, 198, 960, 236), (683, 335, 760, 356), (683, 552, 860, 640)])
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
+    assert nt <= 2, D['title']
+    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    y = 305.0
+    for runs in D['innov']:
+        E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        y = last + 22
+    assert last < 530, ('cropgen innov', last)
+    for x, t in zip((77.0, 252.3, 427.7), D['adv']):
+        n_, last = E.put_par(pdf, pi, x, 566.0, t, 'R', 12, nav, 134, 14)
+        assert last < 650, t
+    w = E.put(pdf, pi, 44.0, 696.0, D['impl_num'], 'H', 24, acc)
+    E.put(pdf, pi, 44.0 + w, 696.0, D['impl_unit'], 'H', 16, acc)
+    n_, last = E.put_par(pdf, pi, 44.0, 712.0, D['impl_cap'], 'R', 12, nav, 250, 14)
+    y = last + 26
+    for t in D['impl']:
+        E.copy_shapes(pdf, pi, (40, 740, 56, 756), 0, y - 752.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, nav, 236, 14)
+        y = last + 18
+    assert last < 813, ('cropgen impl', last)
+    y = 686.0
+    for t in D['effect']:
+        E.copy_shapes(pdf, pi, (304, 674, 320, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 322.0, y, t, 'R', 12, nav, 262, 14)
+        y = last + 18
+    assert last < 813, ('cropgen effect', last)
+    # right page
+    fx = None
+    for i, t in enumerate(D['company']):
+        w = E.put(pdf, pi, 685.4, 56.0 + 22 * i, t, 'H', 18, rcol)
+        if i == 0:
+            fx = 685.4 + w + 8
+    E.put_par(pdf, pi, 685.4, 104.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
+    E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
+    E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
+    E.put(pdf, pi, 685.4, 351.0, D['year'], 'H', 16, rcol)
+    E.put_par(pdf, pi, 685.0, 566.0, D['ask_text'], 'R', 14, nav, 160, 17)
+    put_photos(pdf, pi, D)
+    E.add_image(pdf, pi, Image.open(D['flag']), (fx, 44.5, fx + 36, 65.5), pad=0.0, bg=(179, 235, 56))

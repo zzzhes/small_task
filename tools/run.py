@@ -429,11 +429,17 @@ def neurocode_corners():
     E.replace_image(pdf, x, im, 'cover', quality=93)
 
 
-EDITS = [axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners]
+def kinetronika_staff():
+    pdf, pi = page(60)
+    l = E.find(pdf, pi, '2 человека')
+    E.replace_line(pdf, pi, l, '5\xa0человек', 'R')
+
+
+EDITS = [kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
-INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83)]
+INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83), (SD.CROPGEN, 99)]
 
 
 def old_to_new(n, inserts):

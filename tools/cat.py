@@ -183,6 +183,32 @@ def in_rects(rects, max_wh=None):
     return t
 
 
+def _erase_form(xo, base, h, rects, max_wh, depth=0):
+    xops = pikepdf.parse_content_stream(xo)
+    new, n = filter_paths(xops, base, h, in_rects(rects, max_wh))
+    if n:
+        xo.write(pikepdf.unparse_content_stream(new))
+    if depth > 4:
+        return n
+    res = xo.get('/Resources', {})
+    xd = res.get('/XObject', {}) if res else {}
+    stack, ctm = [], base
+    for o in new:
+        op = str(o.operator)
+        if op == 'q':
+            stack.append(ctm)
+        elif op == 'Q':
+            ctm = stack.pop()
+        elif op == 'cm':
+            ctm = _mul(tuple(float(v) for v in o.operands), ctm)
+        elif op == 'Do' and o.operands[0] in xd:
+            sub = xd[o.operands[0]]
+            if sub.get('/Subtype') == '/Form':
+                m = tuple(float(v) for v in sub.get('/Matrix', [1, 0, 0, 1, 0, 0]))
+                n += _erase_form(sub, _mul(m, ctm), h, rects, max_wh, depth + 1)
+    return n
+
+
 def erase(pdf, page_index, rects, text_layer=True, max_wh=None):
     """Erase visible outline-text (paths in page forms) + invisible Type3 text."""
     pg = pdf.pages[page_index]
@@ -205,12 +231,7 @@ def erase(pdf, page_index, rects, text_layer=True, max_wh=None):
             if xo.Subtype != '/Form':
                 continue
             m = tuple(float(v) for v in xo.get('/Matrix', [1, 0, 0, 1, 0, 0]))
-            base = _mul(m, ctm)
-            xops = pikepdf.parse_content_stream(xo)
-            new, n = filter_paths(xops, base, h, in_rects(rects, max_wh))
-            if n:
-                xo.write(pikepdf.unparse_content_stream(new))
-                total += n
+            total += _erase_form(xo, _mul(m, ctm), h, rects, max_wh)
     # page-level paths (glyphs drawn by earlier edits)
     new, n = filter_paths(pops, (1, 0, 0, 1, 0, 0), h, in_rects(rects, max_wh))
     if n:
