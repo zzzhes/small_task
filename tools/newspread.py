@@ -122,7 +122,7 @@ def put_photos(pdf, pi, D):
             E.replace_image(pdf, x, Image.new('RGB', (8, 8), (255, 255, 255)), 'cover')
             if '/SMask' in x:
                 del x['/SMask']
-            E.add_image(pdf, pi, Image.open(spec[0]), D['logo_box'], pad=0.1)
+            E.add_image(pdf, pi, Image.open(spec[0]), D['logo_box'], pad=0.02)
             continue
         if spec is None:
             if kind == 'logo':

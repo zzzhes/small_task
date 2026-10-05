@@ -38,7 +38,7 @@ GARPIX = dict(
     rev_head=308.0, revenue=[('2025', '₽615,1', None), ('2024', '₽580,4', None)],
     ask_amt='₽150', ask_text='на масштабирование в РФ и СНГ и развитие дообучения ИИ-ядра',
     photo_label=PH, logo_text='GARPIX',
-    photos=dict(logo=(A+'garpix_logo.png', 'logo'), left=(A+'garpix_truck.jpg', 'cover', (0.5, 0.5)),
+    photos=dict(logo=(A+'garpix_logo.png', 'logo'), left=(A+'garpix_truck.jpg', 'cover', (0.95, 0.5)),
                 right=(A+'garpix_laptop.png', 'contain'), speaker=(A+'gataulina.jpg', 'cover', (0.5, 0.2))),
 )
 
@@ -125,7 +125,7 @@ ROBOPROBE = dict(
     company='РОБОТЕСТ СИСТЕМС',
     subtitle='разработчик ПАК для автоматизированного тестирования СВЧ-плат',
     support=['Финалист молодёжных', 'акселераторов Сбера и Москвы'],
-    speaker='Александр Кокошкин', role='CFO/CMO',
+    speaker='Александр Кошкин', role='CFO/CMO',
     ask_amt='от\xa0₽5', ask_text='на доработку продукта и дальнейшие испытания',
     logo_text='РобоТест Системс', logo_box=(1096, 46, 1198, 80),
     photos=dict(logo=(A + 'rts_logo.png', 'logo'), left=(A + 'rpt_probe.png', 'cover', (0.45, 0.4)),
