@@ -588,7 +588,7 @@ def summit_page():
     q.make(fit=True)
     m = q.get_matrix()
     n = len(m)
-    qs, qx, qy = 150.0, 44.0, 404.0
+    qs, qx, qy = 92.0, 44.0, 402.0
     cell = qs / n
     ops = ['q %.4f %.4f %.4f rg' % NAV]
     for r_, row in enumerate(m):
@@ -597,8 +597,8 @@ def summit_page():
                 ops.append('%.3f %.3f %.3f %.3f re' % (qx + c_ * cell, E.H - (qy + (r_ + 1) * cell), cell + 0.02, cell + 0.02))
     ops.append('f Q\n')
     pdf.pages[pi].contents_add(pdf.make_stream('\n'.join(ops).encode()), prepend=False)
-    E.put(pdf, pi, 220.0, 470.0, 'startupsummit.ru', 'B', 26, NAV)
-    E.put_par(pdf, pi, 220.0, 498.0, 'Отсканируйте QR-код, чтобы перейти на сайт', 'R', 14, GREY, 330, 17)
+    # address centred on the QR code's height
+    E.put(pdf, pi, qx + qs + 20, qy + qs / 2 + 6, 'startupsummit.ru', 'B', 18, NAV)
     # summit logo (vector, from the partnership slide)
     logo = pikepdf.open('assets/summit_logo_navy.pdf')
     _KEEP.append(logo)
@@ -617,7 +617,42 @@ def summit_page():
     E.LOG.append((id(pdf), og, 44.0, 760.0, 'Московский Стартап Саммит', 20))
 
 
-EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page]
+def gemotek():
+    """Legal name: ООО «ГЕМОТЭК» (drop « ИИ», move the closing quote)."""
+    import numpy as np
+    pdf, pi = page(6)
+    spdf, spi = src(6)
+    a = R._arr(R._single(spdf, spi))
+    Z = R.Z
+    band = a[int(40 * Z):int(60 * Z), int(683 * Z):int(1000 * Z)]
+    ink = (np.abs(band - np.median(band.reshape(-1, 3), 0)).sum(2) > 80).any(0)
+    xs = np.nonzero(ink)[0] / Z + 683
+    # clusters of ink = glyphs
+    cl, start = [], xs[0]
+    for p_, q_ in zip(xs, xs[1:]):
+        if q_ - p_ > 0.9:
+            cl.append((start, p_))
+            start = q_
+    cl.append((start, xs[-1]))
+    quote, i2, i1, k = cl[-1], cl[-2], cl[-3], cl[-4]
+    nx = k[1] + (quote[0] - i2[1])
+    erase(pdf, pi, [(i1[0] - 1, 38, quote[1] + 2, 62)], text_layer=False, max_wh=30)
+    E.copy_shapes(pdf, pi, (quote[0] - 0.5, 38, quote[1] + 0.5, 62), nx - quote[0], 0, src_pi=spi, src_pdf=spdf)
+    cat_remove = __import__('cat').remove_text_pdf
+    cat_remove(pdf, pi, [(684, 40, 930, 60)])
+    E.LOG.append((id(pdf), pdf.pages[pi].objgen, 685.0, 56.0, 'ООО «ГЕМОТЭК»', 18))
+    print('gemotek clusters', [(round(c[0]), round(c[1])) for c in cl[-5:]])
+
+
+def setirays_role():
+    pdf, pi = page(43)
+    spdf, spi = src(43)
+    col = E.color_in(spdf, spi, (755, 218, 885, 232))
+    erase(pdf, pi, [(753, 218, 960, 233)])
+    E.put(pdf, pi, 755.4, 229.0, 'Основатель', 'R', 12, col)
+
+
+EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
@@ -709,6 +744,8 @@ if __name__ == '__main__':
             print('done', f.__name__)
     if not only or 'inserts' in only:
         do_inserts()
+        import facts
+        facts.facts_pass(PARTS, src(14))
     if not only or 'finalize' in only:
         finalize()
     # map page objgen -> index per part, then save + invisible text layer

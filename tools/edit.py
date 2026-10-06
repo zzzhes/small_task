@@ -89,7 +89,7 @@ def put_block(pdf, pi, x, y, lines_, style, size, color, lead, tracking=0.0):
     return y + (len(lines_) - 1) * lead
 
 
-def copy_shapes(pdf, pi, rect, dx, dy, src_pi=None, src_pdf=None):
+def copy_shapes(pdf, pi, rect, dx, dy, src_pi=None, src_pdf=None, color=None):
     """Copy filled subpaths whose centre is in rect (from src page) shifted by dx,dy.
     Subpaths that came from the same fill keep a common fill (holes stay holes)."""
     src_pdf = src_pdf or pdf
@@ -105,7 +105,7 @@ def copy_shapes(pdf, pi, rect, dx, dy, src_pi=None, src_pdf=None):
     parts = []
     for g, sps in groups.items():
         sp0 = sps[0]
-        col = sp0['color'] or (0, 0, 0)
+        col = color or sp0['color'] or (0, 0, 0)
         if len(col) == 1:
             col = col * 3
         gs = alpha_gs(pdf, pi, sp0.get('alpha', 1.0))
