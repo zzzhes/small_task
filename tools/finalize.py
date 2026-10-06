@@ -72,7 +72,11 @@ def build_column(pdf, pi, spdf, spi, col, blocks, pitch):
             E.LOG.append((id(pdf), pdf.pages[pi].objgen, lx0 + 6, top + 20 + 24 * j, lt, 20))
         for i, (title, num) in enumerate(b['rows']):
             yy = y + i * pitch
-            E.put(pdf, pi, col['x'], yy, title, 'R', 12, NAVY)
+            avail = col['right'] - col['x'] - T.width(str(num), 'R', 12) - 10
+            ts = 12.0
+            while T.width(title, 'R', ts) > avail and ts > 10.0:
+                ts -= 0.25
+            E.put(pdf, pi, col['x'], yy, title, 'R', ts, NAVY)
             T.draw(pdf, pi, col['right'], yy, str(num), 'R', 12, NAVY, alpha=0.5, align='right')
             E.LOG.append((id(pdf), pdf.pages[pi].objgen, col['right'] - T.width(str(num), 'R', 12), yy, str(num), 12))
             rect_fill(pdf, pi, (col['x'], yy + 7, col['right'], yy + 8), SEP)

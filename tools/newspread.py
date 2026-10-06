@@ -2,6 +2,7 @@
 import io
 from PIL import Image, ImageDraw, ImageFont
 import edit as E
+import reflow as R
 import typeset as T
 from cat import image_placements, FD
 from edit import erase
@@ -34,13 +35,14 @@ def build(pdf, pi, spdf, spi, D):
     erase(pdf, pi, D['erase'])
     nav, tcol, rcol = col['body'], col['title'], col['right']
     # ---- left page
-    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
-    assert nt <= 2, ('title > 2 lines', D['title'])
-    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    LIM = R.limits(pdf, pi)
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, LIM(44.4, 18, 545), 22)
+    assert nt <= 3, ('title > 2 lines', D['title'])
+    E.put_rich(pdf, pi, 44.0, 116.0 + 22 * max(0, nt - 2), D['desc'], 14, nav, LIM(44.0, 14, 255), 17)
     y = 305.0
     for runs in D['innov']:
         E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
-        n, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        n, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, LIM(66.0, 14, 234), 17)
         y = last + 22
     assert y < 540, ('innovation too long', y)
     for x, t in zip((77.0, 252.3, 427.7), D['adv']):
@@ -66,7 +68,11 @@ def build(pdf, pi, spdf, spi, D):
         assert T.width(t, 'H', 18) < 390, t
         E.put(pdf, pi, 685.4, 56.0 + 22 * i, t, 'H', 18, rcol)
     sy = 82.0 + 22 * (len(D['company']) - 1)
-    E.put_par(pdf, pi, 685.4, sy, D['subtitle'], 'R', 14, rcol, 375, 17)
+    ss, sl = 14, 17.0
+    if len(D['company']) > 1 and len(E.rich_wrap([(E.typo(D['subtitle']), 'R')], 14,
+                                                 lambda i: LIM(685.4, 14, 375)(sy + i * 17))) > 1:
+        ss, sl, sy = 13, 15.0, sy - 3   # two-line name + two-line subtitle: keep clear of the headers
+    E.put_par(pdf, pi, 685.4, sy, D['subtitle'], 'R', ss, rcol, LIM(685.4, ss, 375), sl)
     cw = T.width(D['city'], 'R', 12)
     icon = (756, 148, 779, 166)
     dx = max(0.0, 704.4 + cw + 10 - 758.0)
@@ -96,7 +102,7 @@ def build(pdf, pi, spdf, spi, D):
         y += 57
     w = E.put(pdf, pi, 685.0, 582.0, D['ask_amt'], 'H', 24, col['ask'])
     E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, col['ask'])
-    E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, 160, 14)
+    E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, LIM(685.0, 12, 160), 14)
     # ---- pictures
     put_photos(pdf, pi, D)
 
@@ -181,9 +187,10 @@ def build_robo(pdf, pi, spdf, spi, D):
                     (40, 650, 610, 815),
                     (683, 38, 1062, 125), (700, 148, 965, 168), (976, 148, 1210, 200),
                     (750, 198, 960, 236), (683, 295, 860, 360), (683, 552, 860, 800)])
-    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
-    assert nt <= 2, D['title']
-    n_, last = E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    LIM = R.limits(pdf, pi)
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, LIM(44.4, 18, 545), 22)
+    assert nt <= 3, D['title']
+    n_, last = E.put_rich(pdf, pi, 44.0, 116.0 + 22 * max(0, nt - 2), D['desc'], 14, nav, LIM(44.0, 14, 255), 17)
     hy = max(280.0, last + 30)
     if hy > 280.0:
         erase(pdf, pi, [(40, 268, 300, 284)])
@@ -191,7 +198,7 @@ def build_robo(pdf, pi, spdf, spi, D):
     y = hy + 25
     for runs in D['innov']:
         E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
-        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, LIM(66.0, 14, 234), 17)
         y = last + 22
     assert last < 530, ('robo innov', last)
     for x, t in zip((77.0, 252.3, 427.7), D['adv']):
@@ -217,7 +224,7 @@ def build_robo(pdf, pi, spdf, spi, D):
     assert last < 813, ('robo effect', last)
     # right page
     E.put(pdf, pi, 685.4, 56.0, D['company'], 'H', 18, rcol)
-    E.put_par(pdf, pi, 685.4, 82.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    E.put_par(pdf, pi, 685.4, 82.0, D['subtitle'], 'R', 14, rcol, LIM(685.4, 14, 375), 17)
     cw = E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
     dx = 704.4 + cw + 10 - 874.4
     E.copy_shapes(pdf, pi, (872, 148, 893, 166), dx, 0, src_pi=spi, src_pdf=spdf)
@@ -229,7 +236,7 @@ def build_robo(pdf, pi, spdf, spi, D):
     E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
     w = E.put(pdf, pi, 685.0, 582.0, D['ask_amt'], 'H', 24, acc)
     E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, acc)
-    E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, 160, 14)
+    E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, LIM(685.0, 12, 160), 14)
     put_photos(pdf, pi, D)
 
 
@@ -246,13 +253,14 @@ def build_cropgen(pdf, pi, spdf, spi, D):
                     (40, 680, 302, 815), (305, 675, 610, 815),
                     (683, 38, 1062, 125), (878, 36, 930, 70), (700, 148, 965, 168),
                     (750, 198, 960, 236), (683, 335, 760, 356), (683, 552, 860, 640)])
-    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
-    assert nt <= 2, D['title']
-    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    LIM = R.limits(pdf, pi)
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, LIM(44.4, 18, 545), 22)
+    assert nt <= 3, D['title']
+    E.put_rich(pdf, pi, 44.0, 116.0 + 22 * max(0, nt - 2), D['desc'], 14, nav, LIM(44.0, 14, 255), 17)
     y = 305.0
     for runs in D['innov']:
         E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
-        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, LIM(66.0, 14, 234), 17)
         y = last + 22
     assert last < 530, ('cropgen innov', last)
     for x, t in zip((77.0, 252.3, 427.7), D['adv']):
@@ -279,12 +287,12 @@ def build_cropgen(pdf, pi, spdf, spi, D):
         w = E.put(pdf, pi, 685.4, 56.0 + 22 * i, t, 'H', 18, rcol)
         if i == 0:
             fx = 685.4 + w + 8
-    E.put_par(pdf, pi, 685.4, 104.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    E.put_par(pdf, pi, 685.4, 104.0, D['subtitle'], 'R', 14, rcol, LIM(685.4, 14, 375), 17)
     E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
     E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
     E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
     E.put(pdf, pi, 685.4, 351.0, D['year'], 'H', 16, rcol)
-    E.put_par(pdf, pi, 685.0, 566.0, D['ask_text'], 'R', 14, nav, 160, 17)
+    E.put_par(pdf, pi, 685.0, 566.0, D['ask_text'], 'R', 14, nav, LIM(685.0, 14, 160), 17)
     put_photos(pdf, pi, D)
     E.add_image(pdf, pi, Image.open(D['flag']), (fx, 44.5, fx + 36, 65.5), pad=0.0, bg=(179, 235, 56))
 
@@ -303,13 +311,14 @@ def build_electica(pdf, pi, spdf, spi, D):
                     (40, 675, 302, 815), (305, 675, 610, 815),
                     (683, 38, 1062, 125), (700, 148, 965, 168), (750, 198, 960, 236),
                     (683, 295, 860, 430), (968, 128, 1215, 215), (683, 530, 860, 640)])
-    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, 545, 22)
-    assert nt <= 2, D['title']
-    E.put_rich(pdf, pi, 44.0, 116.0, D['desc'], 14, nav, 255, 17)
+    LIM = R.limits(pdf, pi)
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, D['title'], 'H', 18, tcol, LIM(44.4, 18, 545), 22)
+    assert nt <= 3, D['title']
+    E.put_rich(pdf, pi, 44.0, 116.0 + 22 * max(0, nt - 2), D['desc'], 14, nav, LIM(44.0, 14, 255), 17)
     y = 305.0
     for runs in D['innov']:
         E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
-        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, 234, 17)
+        n_, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, nav, LIM(66.0, 14, 234), 17)
         y = last + 22
     assert last < 530, ('electica innov', last)
     for x, t in zip((77.0, 252.3), D['adv']):
@@ -334,7 +343,7 @@ def build_electica(pdf, pi, spdf, spi, D):
         w = E.put(pdf, pi, 685.4, 56.0 + 22 * i, t, 'H', 18, rcol)
         if i == 0:
             fx = 685.4 + w + 8
-    E.put_par(pdf, pi, 685.4, 104.0, D['subtitle'], 'R', 14, rcol, 375, 17)
+    E.put_par(pdf, pi, 685.4, 104.0, D['subtitle'], 'R', 14, rcol, LIM(685.4, 14, 375), 17)
     E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
     E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
     E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)

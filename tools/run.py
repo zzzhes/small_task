@@ -4,6 +4,7 @@ import sys
 import pikepdf
 import pymupdf as fitz
 import edit as E
+import reflow as R
 from edit import erase
 
 SIZES = {1: 24, 2: 21, 3: 23, 4: 27, 5: 5}
@@ -180,11 +181,12 @@ def plastilin():
                'геномных данных и полностью цифровизирует селекционный процесс', 'R')], 14, navy, 255, 17)
     b1 = (42, 292, 62, 310)
     y = 305.0
+    LIM = R.limits(pdf, pi)
     for lead, rest in [('Генотип, фенотип, почва и климат', ' в одной прогностической модели'),
                        ('Анализ ДНК-маркеров', ' и ИИ-прогноз для подбора родительских пар'),
                        ('Оптимальный район', ' для сорта или гибрида с детальной технологической картой')]:
         E.copy_shapes(pdf, pi, b1, 0, y - 305.0, src_pi=spi, src_pdf=spdf)
-        n, last = E.put_rich(pdf, pi, 66.0, y, [(lead, 'B'), (rest, 'R')], 14, navy, 234, 17)
+        n, last = E.put_rich(pdf, pi, 66.0, y, [(lead, 'B'), (rest, 'R')], 14, navy, LIM(66.0, 14, 234), 17)
         y = last + 22
     E.put_par(pdf, pi, 252.3, 566.0, 'Выведение нового сорта за 3 года', 'R', 12, navy, 142, 14)
     E.put_par(pdf, pi, 427.7, 566.0, 'Подбор генов-мишеней и генетическое редактирование', 'R', 12, navy, 142, 14)
@@ -338,7 +340,7 @@ def medcomm():
     E.put(pdf, pi, 755.4, 213.0, 'Ульяна Каниовская', 'B', 14, rcol)
     for f, n, x, r, c in image_placements(pdf, pi):
         if r[0] > 800 and (r[3] - r[1]) > 300:
-            E.fit_image(pdf, x, Image.open('assets/mk_phone.png'), r, c, mode='contain', bg=(255, 255, 255))
+            E.fit_image(pdf, x, Image.open('assets/mk_phone.png'), r, c, mode='contain', bg=(255, 255, 255), pad=0.07)
 
 
 def dot(pdf, pi, cx, cy, r, col):
@@ -358,22 +360,25 @@ def sber_support():
         pdf, pi = page(g)
         spdf, spi = src(g)
         col = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Производство и штат')))
-        E.put(pdf, pi, 974.0, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 'H', 14, col, tracking=0.28)
-        dot(pdf, pi, 978.0, 158.0, 3.0, col)
-        E.put(pdf, pi, 988.0, 162.0, 'Участник Sber500', 'R', 12, col)
+        dx = 26.0 if g == 55 else 0.0
+        E.put(pdf, pi, 974.0 + dx, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 'H', 14, col, tracking=0.28)
+        dot(pdf, pi, 978.0 + dx, 158.0, 3.0, col)
+        E.put(pdf, pi, 988.0 + dx, 162.0, 'Участник Sber500', 'R', 12, col)
 
 
 def fitpolis_trackers():
     pdf, pi = page(18)
     spdf, spi = src(18)
     col = E.color_in(spdf, spi, (58, 740, 290, 754))
-    erase(pdf, pi, [(40, 758, 300, 812)])
-    y = 768.0
-    for t in ['115 видов спорта, подключается к 95% трекеров и приложений', '91% пользователей возвращаются к тренировкам с защитой']:
+    erase(pdf, pi, [(40, 726, 300, 816)])
+    y = 731.0
+    for t in ['Пилот в Бразилии завершён, продукт запущен в России',
+              '115 видов спорта, подключается к 95% трекеров и приложений',
+              '91% пользователей возвращаются к тренировкам с защитой']:
         E.copy_shapes(pdf, pi, (40, 726, 56, 742), 0, y - 738.0, src_pi=spi, src_pdf=spdf)
         n, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, col, 232, 14)
-        y = last + 16
-    assert last <= 813, last
+        y = last + 15
+    assert last <= 806, last
 
 
 def heart():
@@ -450,13 +455,169 @@ def trendsee_ask():
     sp2, si2 = src(80)
     acc = E.color_in(sp2, si2, E.line_rect(E.find(sp2, si2, '₽50')))
     erase(pdf, pi, [(683, 552, 860, 600)])
+    LIM = R.limits(pdf, pi)
     w = E.put(pdf, pi, 685.0, 582.0, '₽20', 'H', 24, acc)
     E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, acc)
     E.put_par(pdf, pi, 685.0, 602.0, 'Для масштабирования в СНГ и выхода в страны БРИКС. Открыты к стратегическим партнёрствам',
-              'R', 12, nav, 175, 14)
+              'R', 12, nav, LIM(685.0, 12, 175), 14)
 
 
-EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask]
+def maplab_title():
+    """Last title word ran into the orange shape: move it to a fifth line, description 22pt lower."""
+    pdf, pi = page(34)
+    spdf, spi = src(34)
+    word = (316, 104, 600, 128)
+    desc = (40, 130, 330, 236)
+    erase(pdf, pi, [word, desc], text_layer=False)
+    E.copy_shapes(pdf, pi, word, 44.6 - 319.25, 22, src_pi=spi, src_pdf=spdf)
+    E.copy_shapes(pdf, pi, desc, 0, 22, src_pi=spi, src_pdf=spdf)
+
+
+def robkom_support():
+    """Staff line ran into the support column: move the column right."""
+    pdf, pi = page(51)
+    spdf, spi = src(51)
+    box = (968, 125, 1215, 175)
+    erase(pdf, pi, [box], max_wh=200)
+    E.copy_shapes(pdf, pi, box, 26, 0, src_pi=spi, src_pdf=spdf)
+    og = pdf.pages[pi].objgen
+    E.LOG.append((id(pdf), og, 1000.0, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 14))
+    E.LOG.append((id(pdf), og, 1014.0, 162.0, 'Пилотное тестирование', 12))
+
+
+def znay_nashih():
+    """ICE+ and Qmonitoring took part in the «Знай наших» demo day."""
+    for g, y in ((28, 216.0), (32, 210.0)):
+        pdf, pi = page(g)
+        spdf, spi = src(g)
+        col = E.color_in(spdf, spi, (985, 150, 1200, 166))
+        E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, y - 162.0, src_pi=spi, src_pdf=spdf)
+        E.put(pdf, pi, 988.0, y, 'Участник инвестиционного Демо-', 'R', 12, col)
+        E.put(pdf, pi, 988.0, y + 14, 'дня конкурса брендов «Знай\xa0наших»', 'R', 12, col)
+
+
+def synapsion_strip():
+    """Tongo-Test: the strip photo was tiny inside its transparent canvas."""
+    from PIL import Image
+    from pikepdf import PdfImage
+    from cat import image_placements
+    import zlib
+    pdf, pi = page(15)
+    for f, n, x, r, c in image_placements(pdf, pi):
+        if r[2] < 623 and r[3] - r[1] > 200:
+            W, Hh = int(x.Width), int(x.Height)
+            rgb = PdfImage(x).as_pil_image().convert('RGB')
+            a = PdfImage(x.SMask).as_pil_image().convert('L')
+            im = rgb.copy()
+            im.putalpha(a)
+            bb = a.point(lambda v: 255 if v > 8 else 0).getbbox()
+            obj = im.crop(bb)
+            k = min(W * 0.96 / obj.width, Hh * 0.96 / obj.height)
+            obj = obj.resize((round(obj.width * k), round(obj.height * k)), Image.LANCZOS)
+            can = Image.new('RGBA', (W, Hh), (255, 255, 255, 0))
+            can.alpha_composite(obj, ((W - obj.width) // 2, (Hh - obj.height) // 2))
+            print('synapsion strip scale', round(k, 2))
+            E.replace_image(pdf, x, can.convert('RGB'), 'cover', quality=92)
+            sm = x.SMask
+            sm.write(zlib.compress(can.getchannel('A').tobytes()), filter=pikepdf.Name.FlateDecode)
+            sm.Width, sm.Height = W, Hh
+            sm.ColorSpace = pikepdf.Name.DeviceGray
+            sm.BitsPerComponent = 8
+            for k_ in ('/DecodeParms', '/Decode'):
+                if k_ in sm:
+                    del sm[k_]
+        elif r[0] > 800 and r[3] - r[1] > 300:
+            from PIL import ImageFilter
+            tear = Image.open('assets/tongo_tear.jpg').convert('RGB')
+            tear = tear.resize((tear.width * 3, tear.height * 3), Image.LANCZOS).filter(
+                ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
+            E.fit_image(pdf, x, tear, r, c, mode='cover', focus=(0.5, 0.5))
+
+
+def reflow_all():
+    """Rewrap body text that runs into photos, logos or panels (all original spreads)."""
+    for g in range(5, 100):
+        pdf, pi = page(g)
+        if g != 34:  # MapLab: description moved as shapes, text layer stays put
+            R.reflow(pdf, pi, (40, 90, 330, 470), log='g%d left' % g)
+        R.reflow(pdf, pi, (683, 75, 1000, 125), log='g%d subtitle' % g)
+        R.reflow(pdf, pi, (683, 555, 960, 720), log='g%d ask' % g)
+
+
+def rrect(pdf, pi, r, rad, col):
+    x0, y0, x1, y1 = r
+    X0, Y0, X1, Y1 = x0, E.H - y1, x1, E.H - y0
+    k = rad * 0.5523
+    c = ('q %.4f %.4f %.4f rg %.3f %.3f m %.3f %.3f l %.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f l '
+         '%.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f l %.3f %.3f %.3f %.3f %.3f %.3f c %.3f %.3f l '
+         '%.3f %.3f %.3f %.3f %.3f %.3f c h f Q\n') % (
+        col[0], col[1], col[2], X0 + rad, Y0, X1 - rad, Y0, X1 - rad + k, Y0, X1, Y0 + rad - k, X1, Y0 + rad,
+        X1, Y1 - rad, X1, Y1 - rad + k, X1 - rad + k, Y1, X1 - rad, Y1,
+        X0 + rad, Y1, X0 + rad - k, Y1, X0, Y1 - rad + k, X0, Y1 - rad,
+        X0, Y0 + rad, X0, Y0 + rad - k, X0 + rad - k, Y0, X0 + rad, Y0)
+    pdf.pages[pi].contents_add(pdf.make_stream(c.encode()), prepend=False)
+
+
+def summit_page():
+    """Last page: instead of notes — contacts, QR to the summit site and the summit logo."""
+    import qrcode
+    from PIL import Image
+    pdf, pi = page(100)
+    erase(pdf, pi, [(20, 20, 610, 815)])
+    NAV = (0.047059, 0.090196, 0.160784)
+    GREY = (0.42, 0.47, 0.53)
+    CARD = (0.949, 0.953, 0.961)
+    og = pdf.pages[pi].objgen
+    E.put(pdf, pi, 44.0, 62.0, 'ОБСУДИМ ПАРТНЁРСТВО', 'H', 26, NAV)
+    E.put_par(pdf, pi, 44.0, 96.0, 'Контакты для обсуждения стартапов выставки', 'R', 14, GREY, 520, 17)
+    cards = [('assets/contact_shestakova.jpg', 'Маргарита Шестакова', '+7 985 393-28-32', 'mshestakova@sberbank.ru'),
+             ('assets/contact_daudi.png', 'Дауди Дауддин', '+7 985 455-76-12', 'DIDaudi@sberbank.ru')]
+    for k, (ph, name, tel, mail) in enumerate(cards):
+        x0 = 44.0 + k * 273.0
+        y0 = 124.0
+        rrect(pdf, pi, (x0, y0, x0 + 262, y0 + 196), 24, CARD)
+        E.add_image(pdf, pi, Image.open(ph), (x0 + 20, y0 + 20, x0 + 96, y0 + 96), pad=0, bg=(242, 243, 245),
+                    radius=38, cover=True)
+        E.put(pdf, pi, x0 + 20, y0 + 128, name, 'B', 16, NAV)
+        E.put(pdf, pi, x0 + 20, y0 + 152, tel, 'R', 14, NAV)
+        E.put(pdf, pi, x0 + 20, y0 + 172, mail, 'R', 14, NAV)
+    # site + QR
+    E.put(pdf, pi, 44.0, 384.0, 'САЙТ САММИТА', 'H', 14, NAV, tracking=0.28)
+    q = qrcode.QRCode(border=0, error_correction=qrcode.constants.ERROR_CORRECT_M)
+    q.add_data('https://startupsummit.ru')
+    q.make(fit=True)
+    m = q.get_matrix()
+    n = len(m)
+    qs, qx, qy = 150.0, 44.0, 404.0
+    cell = qs / n
+    ops = ['q %.4f %.4f %.4f rg' % NAV]
+    for r_, row in enumerate(m):
+        for c_, v in enumerate(row):
+            if v:
+                ops.append('%.3f %.3f %.3f %.3f re' % (qx + c_ * cell, E.H - (qy + (r_ + 1) * cell), cell + 0.02, cell + 0.02))
+    ops.append('f Q\n')
+    pdf.pages[pi].contents_add(pdf.make_stream('\n'.join(ops).encode()), prepend=False)
+    E.put(pdf, pi, 220.0, 470.0, 'startupsummit.ru', 'B', 26, NAV)
+    E.put_par(pdf, pi, 220.0, 498.0, 'Отсканируйте QR-код, чтобы перейти на сайт', 'R', 14, GREY, 330, 17)
+    # summit logo (vector, from the partnership slide)
+    logo = pikepdf.open('assets/summit_logo_navy.pdf')
+    _KEEP.append(logo)
+    fx = pdf.copy_foreign(logo.pages[0].as_form_xobject())
+    res = pdf.pages[pi].obj.Resources
+    if '/XObject' not in res:
+        res.XObject = pikepdf.Dictionary()
+    res.XObject['/SummitLogo'] = fx
+    lw = float(logo.pages[0].mediabox[2])
+    lh = float(logo.pages[0].mediabox[3])
+    w = 210.0
+    s = w / lw
+    y1 = 772.0
+    pdf.pages[pi].contents_add(pdf.make_stream(('q %.5f 0 0 %.5f %.3f %.3f cm /SummitLogo Do Q\n' % (
+        s, s, 44.0, E.H - y1)).encode()), prepend=False)
+    E.LOG.append((id(pdf), og, 44.0, 760.0, 'Московский Стартап Саммит', 20))
+
+
+EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
