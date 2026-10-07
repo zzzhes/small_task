@@ -710,7 +710,79 @@ def hemotech():
             E.fit_image(pdf, x, Image.open('assets/hemo_lab.png'), r, c, mode='cover', focus=(0.80, 0.5))
 
 
-EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role, hemotech]
+def new_logos():
+    """Round 8: new logos (Медкоммуникации, Tongo-test, ПептиГен, Циклоп)."""
+    from PIL import Image
+    from cat import image_placements
+    box = (1101, 47, 1193, 79)
+    for g, f, pad in ((24, 'assets/logo_medcomm.png', 0.0), (15, 'assets/logo_tongo.png', 0.02),
+                      (19, 'assets/logo_peptigen.webp', 0.02), (53, 'assets/logo_cyclop.webp', 0.04)):
+        pdf, pi = page(g)
+        for fn, n, x, r, c in image_placements(pdf, pi):
+            if r[0] > 1040 and r[1] < 110:
+                E.replace_image(pdf, x, Image.new('RGB', (8, 8), (255, 255, 255)), 'cover')
+                if '/SMask' in x:
+                    del x['/SMask']
+        if g == 53:   # no logo plate on this spread: copy the outlined plate from the next spread
+            spdf, spi = src(54)
+            E.copy_shapes(pdf, pi, (1085, 30, 1210, 96), 0, 0, src_pi=spi, src_pdf=spdf)
+            erase(pdf, pi, [(1100, 45, 1195, 81)], text_layer=False, max_wh=60)
+        im = Image.open(f).convert('RGBA')
+        im = im.crop(im.getchannel('A').point(lambda v: 255 if v > 10 else 0).getbbox())
+        E.add_image(pdf, pi, im, box, pad=pad)
+
+
+def youth_accel():
+    """Меры поддержки: «Выпускник молодёжных акселераторов Сбера» (Эва Лаб, Климбиотех)."""
+    for g in (23, 91):
+        pdf, pi = page(g)
+        spdf, spi = src(g)
+        col = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Производство')))
+        E.put(pdf, pi, 974.0, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 'H', 14, col, tracking=0.28)
+        dot(pdf, pi, 978.0, 158.0, 3.0, col)
+        E.put(pdf, pi, 988.0, 162.0, 'Выпускник молодёжных', 'R', 12, col)
+        E.put(pdf, pi, 988.0, 176.0, 'акселераторов Сбера', 'R', 12, col)
+
+
+def freze_city():
+    pdf, pi = page(59)
+    spdf, spi = src(59)
+    l = E.find(spdf, spi, 'ХМАО')
+    col = E.color_in(spdf, spi, E.line_rect(l))
+    erase(pdf, pi, [E.line_rect(l), (750, 148, 965, 170)], max_wh=26)
+    E.put(pdf, pi, l['x0'], l['y'], 'Санкт-Петербург', 'R', 12, col)
+
+
+def new_descriptions():
+    for g, t in ((55, 'Тактильный оптоволоконный сенсор, который с точностью до грамма измеряет силу воздействия '
+                     'для бережной работы с хрупкими, мягкими и деформируемыми объектами'),
+                 (67, 'Роботизированная платформа для автоматического тестирования электроники: компьютерное зрение '
+                      'распознаёт платы и разъёмы, а манипулятор адаптируется к их расположению, позволяя тестировать '
+                      'разные модели без сложной перенастройки'),
+                 (98, 'Комплексная AI- и IoT-платформа для повышения продуктивности молочных хозяйств. Умные ошейники '
+                      'и датчики отслеживают здоровье и активность коров, изменения в кормлении и уровень метана, '
+                      'помогая принимать более точные решения по управлению стадом')):
+        pdf, pi = page(g)
+        spdf, spi = src(g)
+        l0 = [l for l in E.lines(spdf, spi) if abs(l['y'] - 133) < 1 and l['x0'] < 60][0]
+        col = E.color_in(spdf, spi, E.line_rect(l0))
+        erase(pdf, pi, [(40, 100, 330, 262)], max_wh=40)
+        LIM = R.limits(pdf, pi)
+        n, last = E.put_rich(pdf, pi, 44.0, 116.0, [(t, 'R')], 14, col, LIM(44.0, 14, 255), 17)
+        print('desc', g, 'lines', n, 'last', last)
+        assert last <= 252, (g, last)
+
+
+def trendsee_role():
+    pdf, pi = page(81)
+    spdf, spi = src(81)
+    l = [l for l in E.lines(spdf, spi) if abs(l['y'] - 229) < 1.5 and l['x0'] > 740][0]
+    col = E.color_in(spdf, spi, E.line_rect(l))
+    erase(pdf, pi, [E.line_rect(l, 1.0)])
+    E.put(pdf, pi, l['x0'], l['y'], 'Генеральный директор', 'R', 12, col)
+
+
+EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role, hemotech, new_logos, youth_accel, freze_city, new_descriptions, trendsee_role]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD

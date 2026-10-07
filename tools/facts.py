@@ -83,13 +83,17 @@ def trim_header(pdf, pi, L, fp):
 
 
 def drop_staff(pdf, pi, L):
-    st = [l for l in L if re.search(r'\d\s*человек', l['t']) and 150 < l['y'] < 175 and l['x0'] > 683]
-    for l in st:
-        right = [m for m in L if abs(m['y'] - l['y']) < 2 and m['x0'] > l['x1'] + 2 and m['x0'] < 965]
-        if right:
-            print('  WARN item right of staff:', right[0]['t'])
-        E.erase(pdf, pi, [rect_of(l), (l['x0'] - 27, l['y'] - 16, l['x0'] - 1, l['y'] + 6)], max_wh=26)
-    return len(st)
+    """Remove everything after the city in the production row: staff, area (м²) and their icons."""
+    row = [l for l in L if 150 < l['y'] < 175 and 700 <= l['x0'] < 965]
+    city = [l for l in row if l['x0'] < 712]
+    if not city:
+        return 0
+    cx1 = max(l['x1'] for l in city)
+    rest = [l for l in row if l['x0'] > cx1 + 2]
+    if not rest:
+        return 0
+    E.erase(pdf, pi, [(cx1 + 3, 146, 966, 170)], max_wh=26)
+    return len(rest)
 
 
 def year_block(pdf, pi, x, y, year, col, hdr_src):
@@ -128,7 +132,7 @@ def facts_pass(parts, hdr_src):
             x1 = max(l['x1'] for l in body)
             if col is None:
                 col = _col(pdf, i, [rect_of(a) for a in ask], NAVY)
-            E.erase(pdf, i, [(683, ry - 15, x1 + 12, last + 6)], max_wh=40)
+            E.erase(pdf, i, [(683, ry - 13, 965, last + 6)], max_wh=40)
             act = 'revenue removed'
             if year:
                 year_block(pdf, i, 685.0, ry, year, col, hdr_src)

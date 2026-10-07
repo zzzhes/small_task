@@ -207,24 +207,35 @@ def build_robo(pdf, pi, spdf, spi, D):
     for x, t in zip((77.0, 252.3, 427.7), D['adv']):
         n_, last = E.put_par(pdf, pi, x, 566.0, t, 'R', 12, nav, 134, 14)
         assert last < 650, t
-    # implementations (header copied from a template with this block) + effect (header moved right)
-    hp, hi = D['impl_head_src']
-    E.copy_shapes(pdf, pi, (40, 650, 200, 668), 0, 0, src_pi=hi, src_pdf=hp)
-    E.copy_shapes(pdf, pi, (40, 650, 300, 668), 264, 0, src_pi=spi, src_pdf=spdf)
-    E.put(pdf, pi, 44.0, 696.0, D['impl_num'], 'H', 24, acc)
-    n_, last = E.put_par(pdf, pi, 44.0, 712.0, D['impl_cap'], 'R', 12, nav, 250, 14)
-    y = last + 22
-    for t in D['impl']:
-        E.copy_shapes(pdf, pi, (40, 674, 56, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
-        n_, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, nav, 236, 14)
-        y = last + 18
-    assert last < 813, ('robo impl', last)
-    y = 686.0
-    for t in D['effect']:
-        E.copy_shapes(pdf, pi, (40, 674, 56, 690), 264, y - 686.0, src_pi=spi, src_pdf=spdf)
-        n_, last = E.put_par(pdf, pi, 322.0, y, t, 'R', 12, nav, 262, 14)
-        y = last + 18
-    assert last < 813, ('robo effect', last)
+    if D.get('no_impl'):
+        # no implementations block: effect header and bullets take the full width (as in the template)
+        y = 686.0
+        for t in D['effect']:
+            E.copy_shapes(pdf, pi, (40, 674, 56, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
+            n_, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, nav, 500, 14)
+            y = last + 18
+        E.copy_shapes(pdf, pi, (40, 650, 300, 668), 0, 0, src_pi=spi, src_pdf=spdf)
+        assert last < 813, ('robo effect', last)
+    else:
+        # implementations (header copied from a template with this block) + effect (header moved right)
+        hp, hi = D['impl_head_src']
+        E.copy_shapes(pdf, pi, (40, 650, 200, 668), 0, 0, src_pi=hi, src_pdf=hp)
+        E.copy_shapes(pdf, pi, (40, 650, 300, 668), 264, 0, src_pi=spi, src_pdf=spdf)
+        E.put(pdf, pi, 44.0, 696.0, D['impl_num'], 'H', 24, acc)
+        n_, last = E.put_par(pdf, pi, 44.0, 712.0, D['impl_cap'], 'R', 12, nav, 250, 14)
+        y = last + 22
+        for t in D['impl']:
+            E.copy_shapes(pdf, pi, (40, 674, 56, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
+            n_, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, nav, 236, 14)
+            y = last + 18
+        assert last < 813, ('robo impl', last)
+        y = 686.0
+        for t in D['effect']:
+            E.copy_shapes(pdf, pi, (40, 674, 56, 690), 264, y - 686.0, src_pi=spi, src_pdf=spdf)
+            n_, last = E.put_par(pdf, pi, 322.0, y, t, 'R', 12, nav, 262, 14)
+            y = last + 18
+        assert last < 813, ('robo effect', last)
+
     # right page
     E.put(pdf, pi, 685.4, 56.0, D['company'], 'H', 18, rcol)
     E.put_par(pdf, pi, 685.4, 82.0, D['subtitle'], 'R', 14, rcol, LIM(685.4, 14, 375), 17)
@@ -232,13 +243,19 @@ def build_robo(pdf, pi, spdf, spi, D):
     dx = 704.4 + cw + 10 - 874.4
     E.copy_shapes(pdf, pi, (872, 148, 893, 166), dx, 0, src_pi=spi, src_pdf=spdf)
     E.put(pdf, pi, 896.4 + dx, 162.0, D['staff'], 'R', 12, rcol)
-    E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, 0, src_pi=spi, src_pdf=spdf)
-    for k, t in enumerate(D['support']):
-        E.put(pdf, pi, 988.0, 162.0 + 14 * k, t, 'R', 12, sup)
+    y = 162.0
+    for t in D['support']:
+        E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, y - 162.0, src_pi=spi, src_pdf=spdf)
+        n_, last = E.put_par(pdf, pi, 988.0, y, t, 'R', 12, sup, 222, 14)
+        y = last + 20
     E.put(pdf, pi, 755.4, 213.0, D['speaker'], 'B', 14, rcol)
     E.put(pdf, pi, 755.4, 229.0, D['role'], 'R', 12, rcol)
-    w = E.put(pdf, pi, 685.0, 582.0, D['ask_amt'], 'H', 24, acc)
-    E.put(pdf, pi, 685.0 + w, 582.0, '\xa0млн', 'H', 16, acc)
+    amt, x = D['ask_amt'], 685.0
+    if amt.startswith('от'):   # small «от», like «млн»
+        x += E.put(pdf, pi, x, 582.0, 'от\xa0', 'H', 16, acc)
+        amt = amt[2:].lstrip('\xa0 ')
+    w = E.put(pdf, pi, x, 582.0, amt, 'H', 24, acc)
+    E.put(pdf, pi, x + w, 582.0, '\xa0млн', 'H', 16, acc)
     E.put_par(pdf, pi, 685.0, 602.0, D['ask_text'], 'R', 12, nav, LIM(685.0, 12, 160), 14)
     put_photos(pdf, pi, D)
 
