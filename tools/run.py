@@ -782,7 +782,44 @@ def trendsee_role():
     E.put(pdf, pi, l['x0'], l['y'], 'Генеральный директор', 'R', 12, col)
 
 
-EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role, hemotech, new_logos, youth_accel, freze_city, new_descriptions, trendsee_role]
+def rubrik():
+    """Рубрик (round 9): federal project, ПМЭФ agreement, pilots, effect, request."""
+    pdf, pi = page(78)
+    spdf, spi = src(78)
+    nav = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'Поиск новых')))
+    acc = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, '1 000+')))
+    body = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'пятиклассников')))
+    try:
+        scol = E.color_in(spdf, spi, (985, 150, 1205, 182))
+    except ValueError:
+        scol = nav
+    erase(pdf, pi, [(40, 680, 302, 815), (305, 675, 600, 815), (683, 553, 940, 640)])
+    # implementations
+    w = E.put(pdf, pi, 44.0, 696.0, '150', 'H', 24, acc)
+    n, last = E.put_par(pdf, pi, 44.0, 712.0, 'школ участвуют в программе пилотирования', 'R', 12, body, 262, 14)
+    y = last + 22
+    for t in ('На ПМЭФ подписано соглашение с ГК\xa0«Просвещение» о комплексном продвижении решения Рубрик',
+              'Участник федерального проекта «Русские\xa0роботы» под руководством Минпромторга и Минпросвещения'):
+        E.copy_shapes(pdf, pi, (304, 674, 320, 690), -264, y - 686.0, src_pi=spi, src_pdf=spdf)
+        n, last = E.put_par(pdf, pi, 58.0, y, t, 'R', 12, body, 244, 14)
+        y = last + 16
+    print('rubrik impl last', last)
+    assert last <= 806, last
+    # effect
+    E.copy_shapes(pdf, pi, (304, 674, 320, 690), 0, 0, src_pi=spi, src_pdf=spdf)
+    E.put_par(pdf, pi, 322.0, 686.0, 'Дети получают доступ к AI-технологиям без замены оборудования', 'R', 12, body, 245, 14)
+    # request
+    LIM = R.limits(pdf, pi)
+    y = 566.0
+    for t in ('Расширение числа школ — участников федерального пилота',
+              'Привлечение отраслевых лидеров для создания федеральных олимпиад по робототехнике'):
+        dot(pdf, pi, 689.0, y - 4.5, 2.5, nav)
+        n, last = E.put_par(pdf, pi, 698.0, y, t, 'R', 12, nav, LIM(698.0, 12, 225), 14)
+        y = last + 20
+    assert last < 700, last
+
+
+EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role, hemotech, new_logos, youth_accel, freze_city, new_descriptions, trendsee_role, rubrik]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
