@@ -10,7 +10,7 @@ FALLBACK = {'R': FD + 'SBSansDisplay-Regular.ttf', 'B': FD + 'SBSansDisplay-Bold
             'H': FD + 'SBSansDisplay-ExtendedSemibold.ttf'}
 _ff = {}
 # glyphs whose only document sample is bold-looking -> take from the font file
-FORCE_FB = {'R': set('UW')}
+FORCE_FB = {'R': set('UWx')}
 
 
 def _fb(style):

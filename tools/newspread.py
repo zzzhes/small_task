@@ -80,7 +80,10 @@ def build(pdf, pi, spdf, spi, D):
         erase(pdf, pi, [icon], text_layer=False)
         E.copy_shapes(pdf, pi, icon, dx, 0, src_pi=spi, src_pdf=spdf)
     E.put(pdf, pi, 704.4, 162.0, D['city'], 'R', 12, rcol)
-    E.put(pdf, pi, 781.4 + dx, 162.0, D['staff'], 'R', 12, rcol)
+    if D['staff']:
+        E.put(pdf, pi, 781.4 + dx, 162.0, D['staff'], 'R', 12, rcol)
+    else:   # no staff line: drop the people icon too
+        erase(pdf, pi, [(icon[0] + dx - 1, icon[1], icon[2] + dx + 1, icon[3])], text_layer=False)
     y = 162.0
     if D.get('sup_head'):
         E.put(pdf, pi, 974.0, 139.0, 'МЕРЫ ПОДДЕРЖКИ', 'H', 14, rcol, tracking=0.28)

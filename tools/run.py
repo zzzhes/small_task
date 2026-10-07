@@ -570,25 +570,24 @@ def summit_page():
     og = pdf.pages[pi].objgen
     E.put(pdf, pi, 44.0, 62.0, 'ОБСУДИМ ПАРТНЁРСТВО', 'H', 26, NAV)
     E.put_par(pdf, pi, 44.0, 96.0, 'Контакты для обсуждения стартапов выставки', 'R', 14, GREY, 520, 17)
-    cards = [('assets/contact_shestakova.jpg', 'Маргарита Шестакова', '+7 985 393-28-32', 'mshestakova@sberbank.ru'),
-             ('assets/contact_daudi.png', 'Дауди Дауддин', '+7 985 455-76-12', 'DIDaudi@sberbank.ru')]
-    for k, (ph, name, tel, mail) in enumerate(cards):
+    cards = [('assets/contact_glazkova.jpg', 'Екатерина Глазкова', 'ESergeevGlazkova@sberbank.ru'),
+             ('assets/contact_daudi.png', 'Дауди Дауддин', 'DIDaudi@sberbank.ru')]
+    for k, (ph, name, mail) in enumerate(cards):
         x0 = 44.0 + k * 273.0
         y0 = 124.0
-        rrect(pdf, pi, (x0, y0, x0 + 262, y0 + 196), 24, CARD)
+        rrect(pdf, pi, (x0, y0, x0 + 262, y0 + 172), 24, CARD)
         E.add_image(pdf, pi, Image.open(ph), (x0 + 20, y0 + 20, x0 + 96, y0 + 96), pad=0, bg=(242, 243, 245),
                     radius=38, cover=True)
         E.put(pdf, pi, x0 + 20, y0 + 128, name, 'B', 16, NAV)
-        E.put(pdf, pi, x0 + 20, y0 + 152, tel, 'R', 14, NAV)
-        E.put(pdf, pi, x0 + 20, y0 + 172, mail, 'R', 14, NAV)
+        E.put(pdf, pi, x0 + 20, y0 + 150, mail, 'R', 14, NAV)
     # site + QR
-    E.put(pdf, pi, 44.0, 384.0, 'САЙТ САММИТА', 'H', 14, NAV, tracking=0.28)
+    E.put(pdf, pi, 44.0, 348.0, 'САЙТ САММИТА', 'H', 14, NAV, tracking=0.28)
     q = qrcode.QRCode(border=0, error_correction=qrcode.constants.ERROR_CORRECT_M)
     q.add_data('https://startupsummit.ru')
     q.make(fit=True)
     m = q.get_matrix()
     n = len(m)
-    qs, qx, qy = 92.0, 44.0, 402.0
+    qs, qx, qy = 92.0, 44.0, 366.0
     cell = qs / n
     ops = ['q %.4f %.4f %.4f rg' % NAV]
     for r_, row in enumerate(m):
@@ -652,11 +651,70 @@ def setirays_role():
     E.put(pdf, pi, 755.4, 229.0, 'Основатель', 'R', 12, col)
 
 
-EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role]
+def hemotech():
+    """HemoTech AI: new product data from the MSS table (round 7) and new photos."""
+    from PIL import Image
+    from cat import image_placements
+    pdf, pi = page(6)
+    spdf, spi = src(6)
+    navy = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'анализатор для')))
+    tcol = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'СКРИНИНГА')))
+    acc = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, '600+')))
+    scol = E.color_in(spdf, spi, E.line_rect(E.find(spdf, spi, 'поддержкой в')))
+    erase(pdf, pi, [(40, 38, 600, 84), (40, 100, 322, 200), (40, 290, 322, 495),
+                    (75, 552, 222, 612), (250, 552, 398, 612), (425, 552, 600, 612),
+                    (40, 680, 302, 775), (305, 675, 600, 775),
+                    (970, 150, 1210, 215), (683, 592, 860, 640)])
+    LIM = R.limits(pdf, pi)
+    nt, _ = E.put_par(pdf, pi, 44.4, 56.0, 'ОПТИЧЕСКИЙ АНАЛИЗАТОР КАЧЕСТВА ОБРАЗЦОВ КРОВИ', 'H', 18, tcol,
+                      LIM(44.4, 18, 545), 22)
+    assert nt <= 2
+    E.put_rich(pdf, pi, 44.0, 116.0, [('HemoTech AI', 'B'), (' — портативный анализатор гемолиза, липемии '
+               'и иктеричности в закрытой пробирке без реагентов', 'R')], 14, navy, LIM(44.0, 14, 255), 17)
+    y = 305.0
+    for runs in ([('Оптический контроль:', 'B'), (' световые источники и фотодетектор измеряют отклик образца '
+                  'через стенку закрытой пробирки', 'R')],
+                 [('ИИ-анализ сигнала:', 'B'), (' модель оценивает гемолиз, липемию и иктеричность '
+                  'по оптическим данным', 'R')]):
+        E.copy_shapes(pdf, pi, (42, 292, 62, 310), 0, y - 305.0, src_pi=spi, src_pdf=spdf)
+        n, last = E.put_rich(pdf, pi, 66.0, y, runs, 14, navy, LIM(66.0, 14, 234), 17)
+        y = last + 22
+    for x, t in zip((77.0, 252.3, 427.7), ('Измерение за 2 секунды', 'Без реагентов и вскрытия пробирки',
+                                          'Компактный прибор для медицинского офиса')):
+        E.put_par(pdf, pi, x, 566.0, t, 'R', 12, navy, 142, 14)
+    erase(pdf, pi, [(40, 680, 200, 702)])
+    E.put(pdf, pi, 44.0, 696.0, '25\xa0000+', 'H', 24, acc)
+    E.put_par(pdf, pi, 44.0, 712.0, 'образцов в базе для обучения модели', 'R', 12, navy, 250, 14)
+    E.copy_shapes(pdf, pi, (40, 736, 56, 752), 0, 738.0 - 746.0, src_pi=spi, src_pdf=spdf)
+    E.put_par(pdf, pi, 58.0, 738.0, 'Пилоты на сыворотке и плазме: МНПЦЛИ ДЗМ и Hadassah', 'R', 12, navy, 236, 14)
+    y = 686.0
+    for t in ('Раннее выявление дефекта до отправки пробы',
+              'Решение о повторном взятии, пока пациент ещё на месте',
+              'Снижение затрат на реагентный контроль'):
+        E.copy_shapes(pdf, pi, (304, 674, 320, 690), 0, y - 686.0, src_pi=spi, src_pdf=spdf)
+        n, last = E.put_par(pdf, pi, 322.0, y, t, 'R', 12, navy, 245, 14)
+        y = last + 20
+    y = 162.0
+    for t in ('Резидент «Сколково»', 'Московский инновационный кластер', 'Участник Sber500'):
+        E.copy_shapes(pdf, pi, (970, 150, 986, 166), 0, y - 162.0, src_pi=spi, src_pdf=spdf)
+        E.put(pdf, pi, 988.0, y, t, 'R', 12, scol)
+        y += 20
+    E.put_par(pdf, pi, 685.0, 602.0, 'на масштабирование производства и выпуск первой серии приборов', 'R', 12,
+              navy, LIM(685.0, 12, 160), 14)
+    for f, n, x, r, c in image_placements(pdf, pi):
+        if r[2] < 640 and r[3] - r[1] > 300:
+            dev = Image.open('assets/hemo_device.png').convert('RGBA')
+            bb = dev.getchannel('A').point(lambda v: 255 if v > 10 else 0).getbbox()
+            E.fit_image(pdf, x, dev.crop(bb), r, c, mode='contain', pad=0.08, bg=(255, 255, 255))
+        elif r[0] > 800 and r[3] - r[1] > 300:
+            E.fit_image(pdf, x, Image.open('assets/hemo_lab.png'), r, c, mode='cover', focus=(0.80, 0.5))
+
+
+EDITS = [sber500, kinetronika_staff, axis, fitpolis, robotfight, mechbox, plastilin, aiolos, aiolos_text, trendsee, neurocode_team, medcomm, sber_support, fitpolis_trackers, heart, statanly, freze, neurocode_corners, plastilin_sber, trendsee_ask, maplab_title, robkom_support, znay_nashih, synapsion_strip, reflow_all, summit_page, gemotek, setirays_role, hemotech]
 
 # new spreads: (data, insert after global g of the ORIGINAL v2 numbering)
 import spreads_data as SD
-INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83), (SD.CROPGEN, 99), (SD.ELECTICA, 45)]
+INSERTS = [(SD.GARPIX, 45), (SD.HIVETRACE, 67), (SD.ROBOPROBE, 67), (SD.WEGOSTY, 83), (SD.CROPGEN, 99), (SD.ELECTICA, 45), (SD.RVS, 45)]
 
 
 def old_to_new(n, inserts):
@@ -686,7 +744,7 @@ def finalize():
     print('urban', urb[-2:], 'robots', rob[-2:], 'create', cre[:1], cre[-1:], 'agro', agr[-1:])
     toc = PARTS[1]
     stoc = SRC[1]
-    pitch = 21.5
+    pitch = 21.0
     RIGHT = dict(label=(655, 800), bar=(803.8, 809.8), x=821.8, right=1202.8)
     LEFT = dict(label=(35, 178), bar=(179.8, 185.8), x=197.8, right=578.8)
     col = lambda c: c

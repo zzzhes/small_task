@@ -10,13 +10,16 @@ import edit as E
 import reflow as R
 import typeset as T
 
-SKIP = {1, 2, 3, 4, 26, 48, 72, 89, 106}          # cover, TOC, section dividers, summit page
+SKIP = {1, 2, 3, 4, 26, 49, 73, 90, 107}          # cover, TOC, section dividers, summit page
 NAVY = (0.047059, 0.090196, 0.160784)
 
 
 def years():
     rows = list(csv.reader(open('years.csv', encoding='utf-8-sig', newline='')))[1:]
-    return [(r[1].strip(), r[2].strip()) for r in rows]
+    ys = [(r[1].strip(), r[2].strip()) for r in rows]
+    k = [n for n, _ in ys].index('Electica Energy')
+    ys.insert(k + 1, ('РВС 3Д', '2021'))      # new spread, round 7
+    return ys
 
 
 def page_lines(pdf, pi):
@@ -102,7 +105,7 @@ def facts_pass(parts, hdr_src):
     ys = years()
     pages = [(p, i) for p in sorted(parts) for i in range(len(parts[p].pages))]
     starts = [pi for g, pi in enumerate(pages, 1) if g not in SKIP]
-    assert len(starts) == len(ys) == 97, (len(starts), len(ys))
+    assert len(starts) == len(ys) == 98, (len(starts), len(ys))
     report = []
     for (p, i), (name, year) in zip(starts, ys):
         pdf = parts[p]
